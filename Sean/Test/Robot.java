@@ -11,6 +11,8 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.SpeedControllerGroup;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -27,10 +29,16 @@ public class Robot extends IterativeRobot {
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
-  Joystick joy1 = new Joystick(0);
+  Gamepad gamepad1 = new Gamepad(0);
 
-  private static final WPI_TalonSRX talonFL = new WPI_TalonSRX(2);
-  private static final WPI_TalonSRX talonRL = new WPI_TalonSRX(3);
+  private static final WPI_TalonSRX talonFrontLeft = new WPI_TalonSRX(2);
+  private static final WPI_TalonSRX talonRearLeft = new WPI_TalonSRX(3);
+  private SpeedControllerGroup driveLeft = new SpeedControllerGroup(talonFrontLeft, talonRearLeft);
+  private static final WPI_TalonSRX talonFrontRight = new WPI_TalonSRX(1);
+  private static final WPI_TalonSRX talonRearRight = new WPI_TalonSRX(11);
+  private SpeedControllerGroup driveRight = new SpeedControllerGroup(talonFrontRight, talonRearRight);
+
+  private DifferentialDrive drive = new DifferentialDrive(driveLeft, driveRight);
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -94,8 +102,11 @@ public class Robot extends IterativeRobot {
    */
   @Override
   public void teleopPeriodic() {
-    talonFL.set(joy1.getRawAxis(1));
-    talonRL.set(joy1.getRawAxis(1));
+    double power = gamepad1.getLeftY();
+    double rotation = gamepad1.getRightX();
+    SmartDashboard.putNumber("leftY", power);
+
+    drive.arcadeDrive(power, rotation);
   }
 
   /**
