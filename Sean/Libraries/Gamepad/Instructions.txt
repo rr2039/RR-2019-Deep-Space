@@ -1,0 +1,6 @@
+1. Copy this file to the same directory as Robot.java.
+2. In Robot.java, use the Gamepad object instead of Joystick.
+
+Notes:
+
+-Dpad changes the POV. Top is 0 degrees and it increments by 45 degrees clockwise.
