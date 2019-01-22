@@ -12,6 +12,8 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
+import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -23,7 +25,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * creating this project, you must also update the build.gradle file in the
  * project.
  */
-public class Robot extends IterativeRobot {
+public class Robot extends TimedRobot {
   private static final String kDefaultAuto = "Default";
   private static final String kCustomAuto = "My Auto";
   private String m_autoSelected;
@@ -31,14 +33,23 @@ public class Robot extends IterativeRobot {
 
   Gamepad gamepad1 = new Gamepad(0);
 
-  private static final WPI_TalonSRX talonFrontLeft = new WPI_TalonSRX(2);
-  private static final WPI_TalonSRX talonRearLeft = new WPI_TalonSRX(3);
+  /*Zuko: FL:2, RL:3, FR:1, RR:11
+    Alorac: L:3 and 1, R:2 and 0 */
+  private static final WPI_TalonSRX talonFrontLeft = new WPI_TalonSRX(3);
+  private static final WPI_TalonSRX talonRearLeft = new WPI_TalonSRX(1);
   private SpeedControllerGroup driveLeft = new SpeedControllerGroup(talonFrontLeft, talonRearLeft);
-  private static final WPI_TalonSRX talonFrontRight = new WPI_TalonSRX(1);
-  private static final WPI_TalonSRX talonRearRight = new WPI_TalonSRX(11);
+  private static final WPI_TalonSRX talonFrontRight = new WPI_TalonSRX(2);
+  private static final WPI_TalonSRX talonRearRight = new WPI_TalonSRX(0);
   private SpeedControllerGroup driveRight = new SpeedControllerGroup(talonFrontRight, talonRearRight);
 
   private DifferentialDrive drive = new DifferentialDrive(driveLeft, driveRight);
+
+  private Timer timer1 = new Timer();
+  private double currTime;
+  private double prevTime;
+
+  private int i = 0;
+
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -48,6 +59,9 @@ public class Robot extends IterativeRobot {
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
+
+    quickThread sensorThread = new quickThread();
+    sensorThread.start();
   }
 
   /**
@@ -102,9 +116,30 @@ public class Robot extends IterativeRobot {
    */
   @Override
   public void teleopPeriodic() {
-    double power = gamepad1.getLeftY();
-    double rotation = gamepad1.getRightX();
+    
+    talonFrontLeft.configOpenloopRamp(0);
+    talonRearLeft.configOpenloopRamp(0);
+    talonFrontRight.configOpenloopRamp(0);
+    talonRearRight.configOpenloopRamp(0);
+
+    double power = gamepad1.getAxisLeftStickY();
+    double rotation = -gamepad1.getAxisRightStickX();
     SmartDashboard.putNumber("leftY", power);
+    SmartDashboard.putNumber("RightX", rotation);
+    SmartDashboard.putNumber("CurrFL", talonFrontLeft.getOutputCurrent());
+    SmartDashboard.putNumber("MotorVoltFL", talonFrontLeft.getMotorOutputVoltage());
+    SmartDashboard.putNumber("CurrRL", talonRearLeft.getOutputCurrent());
+    SmartDashboard.putNumber("MotorVoltRL", talonRearLeft.getMotorOutputVoltage());
+    SmartDashboard.putNumber("CurrFR", talonFrontRight.getOutputCurrent());
+    SmartDashboard.putNumber("MotorVoltFR", talonFrontRight.getMotorOutputVoltage());
+    SmartDashboard.putNumber("CurrRR", talonRearRight.getOutputCurrent());
+    SmartDashboard.putNumber("MotorVoltRR", talonRearRight.getMotorOutputVoltage());
+    SmartDashboard.putNumber("i", i);
+
+    currTime = timer1.getFPGATimestamp();
+    SmartDashboard.putNumber("looprate", currTime - prevTime);
+    prevTime = currTime;
+    SmartDashboard.putNumber("looprate_getperiod", getPeriod());
 
     drive.arcadeDrive(power, rotation);
   }
@@ -114,5 +149,28 @@ public class Robot extends IterativeRobot {
    */
   @Override
   public void testPeriodic() {
+  }
+
+  private class quickThread extends Thread
+  {
+    @Override
+    public void run() {
+      try
+      {
+        while (!isInterrupted()) 
+        {
+          i = i + 1;
+          Thread.sleep(5);
+        }
+      } 
+      catch (InterruptedException e) 
+      {
+        System.out.println(e.getMessage());
+      }
+      catch (Exception e) 
+      {
+        System.out.println(e.getMessage());
+      }
+    }
   }
 }
