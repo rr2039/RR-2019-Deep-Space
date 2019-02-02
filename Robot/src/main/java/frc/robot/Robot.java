@@ -95,8 +95,8 @@ AnalogInput AIRight = new AnalogInput(1);
    * 
   ************************************/
   Compressor c = new Compressor(0);
-  DoubleSolenoid Solenoid1 = new DoubleSolenoid(1, 3);
-  DoubleSolenoid Solenoid2 = new DoubleSolenoid(0, 2);
+  DoubleSolenoid Solenoid1 = new DoubleSolenoid(0, 3);
+  DoubleSolenoid Solenoid2 = new DoubleSolenoid(1, 2);
   /************************************ 
    * Talons
    * 
