@@ -4,7 +4,6 @@
 /* must be accompanied by the FIRST BSD license file in the root directory of */
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
-
 package frc.robot;
 
 
@@ -36,6 +35,21 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 
 
+/****************************************** 
+ * Things that work:
+ * Meccanum drive
+ * pneumatics
+ * navX
+ * 
+ * Things that dont work:
+ * Camera?
+ * 
+ * Things still needed to be implemented:
+ * Auto
+ * Color sensor
+ * Line following
+ * skew correction
+******************************************/
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -91,11 +105,12 @@ AnalogInput AIRight = new AnalogInput(1);
   WPI_TalonSRX frontRight = new WPI_TalonSRX(3);
   WPI_TalonSRX rearRight = new WPI_TalonSRX(4);
   WPI_TalonSRX rearLeft = new WPI_TalonSRX(2);
-  
+
   double ZRotation = 0;
   int iteration_auto = 0;
   
-
+  
+  
 
   /**
    * This function is run when the robot is first started up and should be
@@ -107,12 +122,12 @@ AnalogInput AIRight = new AnalogInput(1);
    * Camera Init
    * 
   ************************************/
-    //UsbCamera camera1 = CameraServer.getInstance().startAutomaticCapture(0);
-    //camera1.setResolution(640, 480);
-    UsbCamera camera2 = CameraServer.getInstance().startAutomaticCapture(1);
-    camera2.setResolution(640, 480);
-    //camera1.setFPS(30);
-    camera2.setFPS(30);
+    UsbCamera camera1 = CameraServer.getInstance().startAutomaticCapture(0);
+    camera1.setResolution(640, 480);
+    //UsbCamera camera2 = CameraServer.getInstance().startAutomaticCapture(1);
+    //camera2.setResolution(640, 480);
+    camera1.setFPS(30);
+    //camera2.setFPS(30);
     /************************************ 
    * Auto chooser
    * 
@@ -127,6 +142,7 @@ AnalogInput AIRight = new AnalogInput(1);
     m_robotDrive = new MecanumDrive(frontLeft, rearLeft, frontRight, rearRight);
     //ahrs = new AHRS(I2C.Port.kMXP); 
     ahrs = new AHRS(SerialPort.Port.kUSB1);
+    
   }
 
   /**
@@ -223,7 +239,6 @@ AnalogInput AIRight = new AnalogInput(1);
    * smart dashboard outputs
    * 
   ************************************/
-
     SmartDashboard.putNumber("Rounded Left Distance", AILeftDistanceRounded);
     SmartDashboard.putNumber("Rounded Right Distance", AIRightDistanceRounded);
     SmartDashboard.putNumber("Left Distance", AILeftDistance);
@@ -236,7 +251,7 @@ AnalogInput AIRight = new AnalogInput(1);
    * Robot Drive
    * 
   ************************************/
-    m_robotDrive.driveCartesian(driveStick.getRawAxis(0), -driveStick.getRawAxis(1),driveStick.getRawAxis(4), -ahrs.getAngle());
+    m_robotDrive.driveCartesian(driveStick.getRawAxis(0), -driveStick.getRawAxis(1),driveStick.getRawAxis(4));
     if(driveStick.getRawButton(1)){
       ahrs.reset();
     }
@@ -244,25 +259,25 @@ AnalogInput AIRight = new AnalogInput(1);
    * pneumatic solenoids
    * 
   ************************************/
-  /* 
-  if(driveStick.getRawButton(1)){
+   
+  if(operatorStick.getRawButton(1)){
       Solenoid1.set(DoubleSolenoid.Value.kForward);
     }
-    else if(driveStick.getRawButton(2)){
+    else if(operatorStick.getRawButton(2)){
       Solenoid1.set(DoubleSolenoid.Value.kReverse);
     }
-    Solenoid1.set(DoubleSolenoid.Value.kForward);
+    
 
-    if(driveStick.getRawButton(3)){
+    if(operatorStick.getRawButton(3)){
       Solenoid2.set(DoubleSolenoid.Value.kForward);
     }
-    else if(driveStick.getRawButton(4)){
+    else if(operatorStick.getRawButton(4)){
       Solenoid2.set(DoubleSolenoid.Value.kReverse);
     }
     Solenoid2.set(DoubleSolenoid.Value.kReverse);
 
     ZRotation = ahrs.getAngle();
-    */
+    
   }
 
   /**
