@@ -54,7 +54,7 @@ public class Robot extends IterativeRobot
  
   boolean center;
   String driveDirection = "Left";
-  double strafeSpeed = 0.7;
+  double strafeSpeed = 0.4;
 
   Joystick joy1 = new Joystick(0);
   boolean slowdown;
@@ -82,11 +82,15 @@ public class Robot extends IterativeRobot
   //Some variables needed for the Color V2 Sensor
   private final double integrationTime = 10;
   private ByteBuffer buffer = ByteBuffer.allocate(10);
-  private short alpha = 0, red = 0, green = 0, blue = 0, prox = 0, threshold = 50;
+  //The sensor reads 25-38 on the line, 12 half off, and 6-8 off the line
+  private short alpha = 0, threshold = 50;
   
   //Initialize the Color V2 Sensor
   I2C sensor = new I2C(I2C.Port.kOnboard, 0x39);
 
+  //double xaxis = 0;
+  private static final double minimumStrafeSpeed = 0.2;
+  //private static final boolean dashboardDriveDirection;
 
   private static final AnalogInput sensorL = new AnalogInput(0);
   private static final AnalogInput sensorR = new AnalogInput(1);
@@ -153,7 +157,6 @@ public class Robot extends IterativeRobot
     talonFL.configOpenloopRamp(0.25, 20);
     talonBL.configOpenloopRamp(0.25, 20);
     talonBR.configOpenloopRamp(0.25, 20);
-
     if (joy1.getRawAxis(0) > deadzone || joy1.getRawAxis(0) < -deadzone)
     {
       xaxis = joy1.getRawAxis(0);
@@ -161,7 +164,7 @@ public class Robot extends IterativeRobot
     else
     {
       xaxis = 0;
-    }
+       }
     if (joy1.getRawAxis(1) > deadzone || joy1.getRawAxis(1) < -deadzone)
     {
       yaxis = joy1.getRawAxis(1);
@@ -205,6 +208,14 @@ public class Robot extends IterativeRobot
   @Override
   public void teleopPeriodic() 
   {
+    /*if (driveDirection == "Left")
+    {
+      dashboardDriveDirection == True;
+    }
+    else
+    {
+      dashboardDriveDirection == False;
+     }*/
     poutFR = talonFR.getMotorOutputPercent();
     alpha = readAlphaIntensity();
     SmartDashboard.putNumber("Alpha Value", alpha);
@@ -228,6 +239,10 @@ public class Robot extends IterativeRobot
       CenterRobot();
     }
       mecdrive.driveCartesian(xaxis * slowmodifer, -yaxis * slowmodifer, rotation * slowmodifer);
+      SmartDashboard.putNumber("xaxis", xaxis);
+      SmartDashboard.putNumber("yaxis", yaxis);
+      SmartDashboard.putNumber("rotation", rotation);
+      SmartDashboard.putString("Drive Direction", driveDirection);
       lineupfinish = false;
   }
     // ----------------------------------------------------------------------------------------
@@ -262,28 +277,26 @@ public class Robot extends IterativeRobot
     */
     if (driveDirection == "Left" && alpha < threshold)
     {
-      yaxis = -strafeSpeed;
-      if (alpha > threshold)
-      {
-        driveDirection = "Right";
-        yaxis = 0;
-        if (strafeSpeed/2 < 0.3) {strafeSpeed = strafeSpeed/2 ;};
-      }
+      xaxis = -strafeSpeed;
     }
     else if (driveDirection == "Right" && alpha < threshold)
     {
-      yaxis = strafeSpeed;
-      if (alpha > threshold)
-      {
-        driveDirection = "Left";
-        yaxis = 0;
-        if (strafeSpeed/2 < 0.3) {strafeSpeed = strafeSpeed/2; }
-      }
+      xaxis = strafeSpeed;
     }
     else
     {
       //Do not straffe because the robot is on the line.
-      yaxis = 0;
+      xaxis = 0;
+      if (strafeSpeed/2 >= minimumStrafeSpeed) {strafeSpeed = strafeSpeed/2; }
+      if (driveDirection == "Left")
+      {
+        driveDirection = "Right";
+      }
+      else
+      {
+        driveDirection = "Left";
+      }
+
     }
   }
   
@@ -292,7 +305,7 @@ public class Robot extends IterativeRobot
     sensor.read(CMD | MULTI_BYTE_BIT | CDATA_REGISTER, 10, buffer);
 
     short alpha_value = buffer.getShort(0);
-    if(red < 0) { alpha_value += 0b10000000000000000; }
+    if(alpha_value < 0) { alpha_value += 0b10000000000000000; }
     return alpha_value;
   }
 }
