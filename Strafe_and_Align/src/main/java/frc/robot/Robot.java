@@ -51,7 +51,9 @@ public class Robot extends IterativeRobot
   double gyroangle;
   boolean lineup;
   boolean lineupfinish;
- 
+  
+  boolean neverOnLine = true;
+  boolean toggled = false;
   boolean center;
   String driveDirection = "Left";
   double strafeSpeed = 0.4;
@@ -82,8 +84,11 @@ public class Robot extends IterativeRobot
   //Some variables needed for the Color V2 Sensor
   private final double integrationTime = 10;
   private ByteBuffer buffer = ByteBuffer.allocate(10);
-  //The sensor reads 25-38 on the line, 12 half off, and 6-8 off the line
-  private short alpha = 0, threshold = 50;
+  /*
+   * The sensor reads 68-71 on the line, 38-41 half off, and 10-12 off the line.
+   * The Threshold is set below that just to be safe in case it never finds that value.
+   */
+  private short alpha = 0, threshold = 64;
   
   //Initialize the Color V2 Sensor
   I2C sensor = new I2C(I2C.Port.kOnboard, 0x39);
@@ -233,16 +238,38 @@ public class Robot extends IterativeRobot
     {
       USCorrection();
     }
-
-    if (center == true)
+    /*
+     * The robot will only center if it was not on the line previously.
+     * This (neverOnLine) is reset to true if the button is released.
+     */
+    if (center == true && toggled == false && neverOnLine == true)
+    {
+      toggled = true;
+      driveDirection = "Left";
+      strafeSpeed = 0.4;
+      xaxis = 0;
+      CenterRobot();
+    }
+    else if (center == true && toggled == true && neverOnLine == true)
     {
       CenterRobot();
+    }
+    else if (center == true && neverOnLine == false)
+    {
+      ;
+    }
+    else if (center == false)
+    {
+      toggled = false;
+      neverOnLine = true;
     }
       mecdrive.driveCartesian(xaxis * slowmodifer, -yaxis * slowmodifer, rotation * slowmodifer);
       SmartDashboard.putNumber("xaxis", xaxis);
       SmartDashboard.putNumber("yaxis", yaxis);
       SmartDashboard.putNumber("rotation", rotation);
       SmartDashboard.putString("Drive Direction", driveDirection);
+      SmartDashboard.putBoolean("Toggled", toggled);
+      SmartDashboard.putBoolean("neverOnLine", neverOnLine);
       lineupfinish = false;
   }
     // ----------------------------------------------------------------------------------------
@@ -275,7 +302,15 @@ public class Robot extends IterativeRobot
   {
     /*The robot strafes left, if it hits the line it stops and inverts the driving direction. 
     */
-    if (driveDirection == "Left" && alpha < threshold)
+    /* this if statement needs to only be true if it is on the line
+     * for a certain amount of time.
+     */
+    if (alpha >= threshold)
+    {
+      neverOnLine = false;
+      xaxis = 0;
+    }
+    else if (driveDirection == "Left" && alpha < threshold)
     {
       xaxis = -strafeSpeed;
     }
@@ -286,17 +321,15 @@ public class Robot extends IterativeRobot
     else
     {
       //Do not straffe because the robot is on the line.
-      xaxis = 0;
       if (strafeSpeed/2 >= minimumStrafeSpeed) {strafeSpeed = strafeSpeed/2; }
       if (driveDirection == "Left")
       {
         driveDirection = "Right";
       }
-      else
+      else if (driveDirection == "Right")
       {
         driveDirection = "Left";
       }
-
     }
   }
   
