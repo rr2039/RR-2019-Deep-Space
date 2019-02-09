@@ -32,7 +32,7 @@ public class Robot extends IterativeRobot
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
-/* Allignment Code */
+/* Allignment variables */
   boolean center;
   String driveDirection = "Left";
   double strafeSpeed = 0.6;
@@ -69,21 +69,21 @@ public class Robot extends IterativeRobot
   Joystick joy2 = new Joystick(1);
 
 /* Alignment Variables */
-  protected final static int CMD = 0x80;
-  protected final static int MULTI_BYTE_BIT = 0x20;
-  protected final static int ENABLE_REGISTER  = 0x00;
-  protected final static int ATIME_REGISTER   = 0x01;
-  protected final static int PPULSE_REGISTER  = 0x0E;
+  int CMD = 0x80;
+  int MULTI_BYTE_BIT = 0x20;
+  int ENABLE_REGISTER  = 0x00;
+  int ATIME_REGISTER   = 0x01;
+  int PPULSE_REGISTER  = 0x0E;
 
-  protected final static int ID_REGISTER     = 0x12;
-  protected final static int CDATA_REGISTER  = 0x14; 
+  int ID_REGISTER     = 0x12;
+  int CDATA_REGISTER  = 0x14; 
 
-  protected final static int PON   = 0b00000001;
-  protected final static int AEN   = 0b00000010;
-  protected final static int PEN   = 0b00000100;
-  protected final static int WEN   = 0b00001000;
-  protected final static int AIEN  = 0b00010000;
-  protected final static int PIEN  = 0b00100000;
+  int PON   = 0b00000001;
+  int AEN   = 0b00000010;
+  int PEN   = 0b00000100;
+  int WEN   = 0b00001000;
+  int AIEN  = 0b00010000;
+  int PIEN  = 0b00100000;
 
   private final double integrationTime = 10;
   private ByteBuffer buffer = ByteBuffer.allocate(10);
@@ -92,19 +92,19 @@ public class Robot extends IterativeRobot
   I2C sensor = new I2C(I2C.Port.kOnboard, 0x39);
 
 // Everything Else
-  private static final AHRS ahrs = new AHRS(SerialPort.Port.kUSB1);
+  AHRS ahrs = new AHRS(SerialPort.Port.kUSB1);
   double ZRotation = 0;
 
-  private static final AnalogInput sensorL = new AnalogInput(0);
-  private static final AnalogInput sensorR = new AnalogInput(1);
+  AnalogInput sensorL = new AnalogInput(0);
+  AnalogInput sensorR = new AnalogInput(1);
  
-  private static final WPI_TalonSRX talonFR = new WPI_TalonSRX(3);
-  private static final WPI_TalonSRX talonBR = new WPI_TalonSRX(4);
+  WPI_TalonSRX talonFR = new WPI_TalonSRX(3);
+  WPI_TalonSRX talonBR = new WPI_TalonSRX(4);
 
-  private static final WPI_TalonSRX talonFL = new WPI_TalonSRX(1);
-  private static final WPI_TalonSRX talonBL = new WPI_TalonSRX(2);
+  WPI_TalonSRX talonFL = new WPI_TalonSRX(1);
+  WPI_TalonSRX talonBL = new WPI_TalonSRX(2);
 
-  private static final WPI_TalonSRX liftmotor = new WPI_TalonSRX(5);
+  WPI_TalonSRX liftmotor = new WPI_TalonSRX(5);
 
  MecanumDrive mecdrive = new MecanumDrive(talonFL, talonBL, talonFR, talonBR);
   Compressor c = new Compressor(0);
@@ -136,6 +136,7 @@ public class Robot extends IterativeRobot
   @Override
   public void robotPeriodic() 
   {
+    
     SmartDashboard.putNumber("alphavalue", alpha);
     center = joy2.getRawButton(5);
     slowdown = joy1.getRawButton(1);
@@ -247,7 +248,7 @@ public class Robot extends IterativeRobot
     {
     Solenoid2.set(DoubleSolenoid.Value.kReverse);
     }
-    Solenoid2.set(DoubleSolenoid.Value.kReverse);
+    
 
     if (slowdown == true)
     {
