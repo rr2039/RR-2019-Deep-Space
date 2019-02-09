@@ -2,6 +2,8 @@ package frc.robot;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.sql.Time;
+
 import com.kauailabs.navx.frc.AHRS;
 import com.kauailabs.navx.frc.Quaternion;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
@@ -21,7 +23,7 @@ import com.ctre.phoenix.motorcontrol.*;
 
 // ----------------------------------------------------------------------------------------
 
-public class Robot extends IterativeRobot 
+public class Robot extends TimedRobot 
 {
   private static final String kDefaultAuto = "Default";
   private static final String kCustomAuto = "My Auto";
@@ -55,8 +57,8 @@ public class Robot extends IterativeRobot
   boolean neverOnLine = true;
   boolean toggled = false;
   boolean center;
-  String driveDirection = "Left";
-  double strafeSpeed = 0.4;
+  int iteration = 0;
+  double strafeSpeed = 1;
 
   Joystick joy1 = new Joystick(0);
   boolean slowdown;
@@ -65,21 +67,21 @@ public class Robot extends IterativeRobot
   Joystick joy2 = new Joystick(1);
 
   //Registries for the Color Sensor V2
-  protected final static int CMD = 0x80;
-  protected final static int MULTI_BYTE_BIT = 0x20;
-  protected final static int ENABLE_REGISTER  = 0x00;
-  protected final static int ATIME_REGISTER   = 0x01;
-  protected final static int PPULSE_REGISTER  = 0x0E;
+  int CMD = 0x80;
+  int MULTI_BYTE_BIT = 0x20;
+  int ENABLE_REGISTER  = 0x00;
+  int ATIME_REGISTER   = 0x01;
+  int PPULSE_REGISTER  = 0x0E;
 
-  protected final static int ID_REGISTER     = 0x12;
-  protected final static int CDATA_REGISTER  = 0x14; // Clear (Alpha) register
+  int ID_REGISTER     = 0x12;
+  int CDATA_REGISTER  = 0x14; // Clear (Alpha) register
 
-  protected final static int PON   = 0b00000001;
-  protected final static int AEN   = 0b00000010;
-  protected final static int PEN   = 0b00000100;
-  protected final static int WEN   = 0b00001000;
-  protected final static int AIEN  = 0b00010000;
-  protected final static int PIEN  = 0b00100000;
+  int PON   = 0b00000001;
+  int AEN   = 0b00000010;
+  int PEN   = 0b00000100;
+  int WEN   = 0b00001000;
+  int AIEN  = 0b00010000;
+  int PIEN  = 0b00100000;
 
   //Some variables needed for the Color V2 Sensor
   private final double integrationTime = 10;
@@ -88,13 +90,13 @@ public class Robot extends IterativeRobot
    * The sensor reads 68-71 on the line, 38-41 half off, and 10-12 off the line.
    * The Threshold is set below that just to be safe in case it never finds that value.
    */
-  private short alpha = 0, threshold = 64;
+  private short alpha = 0, threshold = 38;
+  private double xSpeed = 0;
   
   //Initialize the Color V2 Sensor
   I2C sensor = new I2C(I2C.Port.kOnboard, 0x39);
 
   //double xaxis = 0;
-  private static final double minimumStrafeSpeed = 0.2;
   //private static final boolean dashboardDriveDirection;
 
   private static final AnalogInput sensorL = new AnalogInput(0);
@@ -241,33 +243,46 @@ public class Robot extends IterativeRobot
     /*
      * The robot will only center if it was not on the line previously.
      * This (neverOnLine) is reset to true if the button is released.
+     * Strafe speed works at -0.5, reverse speed at 0.5, and iterations at 14 for perfect accuracy.
+     * There is room for improvement for speed.
+     * 
+     * For strafe speed at -0.6, reverse speed at 0.38, and iterations at 25.
+     * Not as accurate as the previous but could potentially be improved to the same accuracy.
      */
     if (center == true && toggled == false && neverOnLine == true)
     {
       toggled = true;
-      driveDirection = "Left";
       strafeSpeed = 0.4;
       xaxis = 0;
       CenterRobot();
+      mecdrive.driveCartesian(-0.6, 0, 0);
     }
     else if (center == true && toggled == true && neverOnLine == true)
     {
       CenterRobot();
+      mecdrive.driveCartesian(-0.6, 0, 0);
     }
     else if (center == true && neverOnLine == false)
     {
-      ;
+      if (iteration < 25)
+      {
+        mecdrive.driveCartesian(0.38, 0, 0);
+        iteration += 1;
+      }
+      else{
+        xSpeed = 0;
+      }
     }
     else if (center == false)
     {
       toggled = false;
       neverOnLine = true;
-    }
+      iteration = 0;
       mecdrive.driveCartesian(xaxis * slowmodifer, -yaxis * slowmodifer, rotation * slowmodifer);
+    }
       SmartDashboard.putNumber("xaxis", xaxis);
       SmartDashboard.putNumber("yaxis", yaxis);
       SmartDashboard.putNumber("rotation", rotation);
-      SmartDashboard.putString("Drive Direction", driveDirection);
       SmartDashboard.putBoolean("Toggled", toggled);
       SmartDashboard.putBoolean("neverOnLine", neverOnLine);
       lineupfinish = false;
@@ -300,36 +315,16 @@ public class Robot extends IterativeRobot
 
   public void CenterRobot()
   {
-    /*The robot strafes left, if it hits the line it stops and inverts the driving direction. 
+    /*The robot strafes left until it hits the line. 
     */
-    /* this if statement needs to only be true if it is on the line
-     * for a certain amount of time.
-     */
     if (alpha >= threshold)
     {
       neverOnLine = false;
-      xaxis = 0;
+      xSpeed = 0.5;
     }
-    else if (driveDirection == "Left" && alpha < threshold)
+    else if (alpha < threshold)
     {
-      xaxis = -strafeSpeed;
-    }
-    else if (driveDirection == "Right" && alpha < threshold)
-    {
-      xaxis = strafeSpeed;
-    }
-    else
-    {
-      //Do not straffe because the robot is on the line.
-      if (strafeSpeed/2 >= minimumStrafeSpeed) {strafeSpeed = strafeSpeed/2; }
-      if (driveDirection == "Left")
-      {
-        driveDirection = "Right";
-      }
-      else if (driveDirection == "Right")
-      {
-        driveDirection = "Left";
-      }
+      xSpeed = -strafeSpeed;
     }
   }
   
