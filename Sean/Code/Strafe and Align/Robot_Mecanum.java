@@ -43,7 +43,6 @@ public class Robot_Kevin_New_My extends TimedRobot
   double driveXAxis;
   double driveYAxis;
   double driveRotation;
-  //double driveDeadzone = 0.20; 
 
   double USSLout;
   double USSRout;
@@ -52,21 +51,19 @@ public class Robot_Kevin_New_My extends TimedRobot
 
   double gyroangle;
   boolean lineup;
-  //boolean lineupfinish;
   boolean center = false;
   
-  /*boolean neverOnLine = true;
-  boolean toggled = false;
-  boolean center;
-  int iteration = 0;
-  double strafeSpeed = 1;*/
-
-  private double centerStrafeSpeed = 0.6;
-  private double centerReverseSpeed = 0.38;
-  private double centerIterations = 25;
+  private double centerStrafeSpeed = 0.7;
+  private double centerReverseSpeed = 0.4;
+  private double centerReverseSpeed2 = 0.38;
+  private int centerIterations = 10;//how many iterations to reverse
+  private int centerIterations2 = 10;
+  private int centerIterationsCount = 0;//the count of iterations to reverse
   private double tempXAxis = 0;
   private double tempYAxis = 0;
   private double tempRotation = 0;
+  //Color sensor error estimate
+  private int alphaFirst = 0;
 
   private String driveState = "normal";
   private String centerState = "start";
@@ -103,13 +100,9 @@ public class Robot_Kevin_New_My extends TimedRobot
    * The Threshold is set below that just to be safe in case it never finds that value.
    */
   private short alpha = 0, threshold = 38;
-  //private double xSpeed = 0;
   
   //Initialize the Color V2 Sensor
   I2C sensor = new I2C(I2C.Port.kOnboard, 0x39);
-
-  //double xaxis = 0;
-  //private static final boolean dashboardDriveDirection;
 
   private static final AnalogInput sensorL = new AnalogInput(0);
   private static final AnalogInput sensorR = new AnalogInput(1);
@@ -202,131 +195,85 @@ public class Robot_Kevin_New_My extends TimedRobot
   @Override
   public void teleopPeriodic() 
   {
-    /*if (driveDirection == "Left")
-    {
-      dashboardDriveDirection == True;
-    }
-    else
-    {
-      dashboardDriveDirection == False;
-     }*/
     poutFR = talonFR.getMotorOutputPercent();
     alpha = readAlphaIntensity();
     SmartDashboard.putNumber("Alpha Value", alpha);
     SmartDashboard.putNumber("PoutFR", poutFR);
 
+    SmartDashboard.putString("driveState", driveState);
+    SmartDashboard.putString("centerState", centerState);
+
+    SmartDashboard.putNumber("Alpha when first detected", alphaFirst);
+    
+    SmartDashboard.putNumber("driveXAxis", driveXAxis);
+    SmartDashboard.putNumber("driveYAxis", driveYAxis);
+    SmartDashboard.putNumber("driveRotation", driveRotation);  
   
-    //normal drive state
-    if (driveState.equals("normal"))
+
+    switch (driveState)
     {
-      if (center && joy1.getRawButtonPressed(3))
+      //normal drive state
+      case "normal":
       {
-        driveState = "center";
-      }
-      else if (lineup && joy1.getRawButtonPressed(2))
-      {
-        driveState = "lineup";
+        if (center && joy1.getRawButtonPressed(3))
+        {
+          driveState = "center";
+        }
+        else if (lineup && joy1.getRawButtonPressed(2))
+        {
+          driveState = "lineup";
+        }
+  
+        else
+        {
+          driveNormal();
+        }
+
+        break;
       }
 
-      else
+      //center state
+      case "center":
       {
-        driveNormal();
-      }     
-      
-    }
+        if (!center || centerState.equals("stop"))
+        {
+          tempXAxis = 0;
+          mecdrive.driveCartesian(0,0,0);
+          driveState = "normal";
+          centerState = "start";
+        }
+  
+        else
+        {
+          driveCenter();
+        }
 
-    //center state
-    else if(driveState.equals("center"))
-    {
-      /*
-     * The robot will only center if it was not on the line previously.
-     * This (neverOnLine) is reset to true if the button is released.
-     * Strafe speed works at -0.5, reverse speed at 0.5, and iterations at 14 for perfect accuracy.
-     * There is room for improvement for speed.
-     * 
-     * For strafe speed at -0.6, reverse speed at 0.38, and iterations at 25.
-     * Not as accurate as the previous but could potentially be improved to the same accuracy.
-     */
-      if (!center || centerState.equals("stop"))
-      {
-        tempXAxis = 0;
-        mecdrive.driveCartesian(0,0,0);
-        driveState = "normal";
-        centerState = "start";
+        break;
       }
 
-      else
+      //lineup state
+      case "lineup":
       {
-        driveCenter();
-      }
-    }
+        if (!lineup || lineupState.equals("stop"))
+        {
+          tempXAxis = 0;
+          tempYAxis = 0;
+          tempRotation = 0;
+          mecdrive.driveCartesian(0,0,0);
+          driveState = "normal";
+          lineupState = "start";
+        }
+  
+        else
+        {
+          driveLineup();
+        }
 
-    //lineup state
-    else if (driveState.equals("lineup"))
-    {
-      if (!lineup || lineupState.equals("stop"))
-      {
-        tempXAxis = 0;
-        tempYAxis = 0;
-        tempRotation = 0;
-        mecdrive.driveCartesian(0,0,0);
-        driveState = "normal";
-        lineupState = "start";
-      }
+        break;
+      }//end of lineup
+    }//end of switch
 
-      else
-      {
-        driveLineup();
-      }
-    }
-
-    
-    
-    /*
-     * The robot will only center if it was not on the line previously.
-     * This (neverOnLine) is reset to true if the button is released.
-     * Strafe speed works at -0.5, reverse speed at 0.5, and iterations at 14 for perfect accuracy.
-     * There is room for improvement for speed.
-     * 
-     * For strafe speed at -0.6, reverse speed at 0.38, and iterations at 25.
-     * Not as accurate as the previous but could potentially be improved to the same accuracy.
-     */
-    /*if (center == true && toggled == false && neverOnLine == true)
-    {
-      toggled = true;
-      strafeSpeed = 0.4;
-      xaxis = 0;
-      CenterRobot();
-      mecdrive.driveCartesian(-0.6, 0, 0);
-    }
-    else if (center == true && toggled == true && neverOnLine == true)
-    {
-      CenterRobot();
-      mecdrive.driveCartesian(-0.6, 0, 0);
-    }
-    else if (center == true && neverOnLine == false)
-    {
-      if (iteration < 25)
-      {
-        mecdrive.driveCartesian(0.38, 0, 0);
-        iteration += 1;
-      }
-      else{
-        xSpeed = 0;
-      }
-    }
-    else if (center == false)
-    {
-      toggled = false;
-      neverOnLine = true;
-      iteration = 0;
-      mecdrive.driveCartesian(xaxis * slowmodifer, -yaxis * slowmodifer, rotation * slowmodifer);
-    }*/
-      SmartDashboard.putNumber("driveXAxis", driveXAxis);
-      SmartDashboard.putNumber("driveYAxis", driveYAxis);
-      SmartDashboard.putNumber("driveRotation", driveRotation);
-      //lineupfinish = false;
-  }
+  }//end of teleop
     // ----------------------------------------------------------------------------------------
   @Override
   public void testPeriodic() 
@@ -353,21 +300,6 @@ public class Robot_Kevin_New_My extends TimedRobot
     }
   }*/
 
-  /*public void CenterRobot()
-  {
-    /*The robot strafes left until it hits the line. 
-    *
-    if (alpha >= threshold)
-    {
-      neverOnLine = false;
-      xSpeed = 0.5;
-    }
-    else if (alpha < threshold)
-    {
-      xSpeed = -strafeSpeed;
-    }
-  }*/
-  
   public void driveNormal()
   {
     mecdrive.setDeadband(0.2);
@@ -380,31 +312,6 @@ public class Robot_Kevin_New_My extends TimedRobot
       slowmodifer = 1.0;
     }
 
-    /*if (joy1.getRawAxis(0) > driveDeadzone || joy1.getRawAxis(0) < -driveDeadzone)
-    {
-      driveXAxis = joy1.getRawAxis(0);
-    }
-    else
-    {
-      driveXAxis = 0;
-       }
-    if (joy1.getRawAxis(1) > driveDeadzone || joy1.getRawAxis(1) < -driveDeadzone)
-    {
-      driveYAxis = joy1.getRawAxis(1);
-    }
-    else
-    {
-      driveYAxis = 0;
-    }
-    if (joy1.getRawAxis(4) > driveDeadzone || joy1.getRawAxis(4) < -driveDeadzone)
-    {
-      driveRotation = joy1.getRawAxis(4);
-    }
-    else
-    {
-      driveRotation = 0;
-    }*/
-
     driveXAxis = joy1.getRawAxis(0);
     driveYAxis = joy1.getRawAxis(1);
     driveRotation = joy1.getRawAxis(4);
@@ -413,41 +320,100 @@ public class Robot_Kevin_New_My extends TimedRobot
 
   public void driveCenter()
   {
-    if (centerState.equals("start"))
+    /*
+     * The robot will only center if it was not on the line previously.
+     * This (neverOnLine) is reset to true if the button is released.
+     * Strafe speed works at -0.5, reverse speed at 0.5, and iterations at 14 for perfect accuracy.
+     * There is room for improvement for speed.
+     * 
+     * For strafe speed at -0.6, reverse speed at 0.38, and iterations at 25.
+     * Not as accurate as the previous but could potentially be improved to the same accuracy.
+     */
+
+    switch (centerState)
     {
-      if (alpha >= threshold)
+      //start centering
+      case "start":
       {
-        centerState = "reverse";
+        if (alpha >= threshold)
+        {
+          alphaFirst = alpha;
+          centerState = "reverse";
+        }
+  
+        else
+        {
+          mecdrive.setDeadband(0);
+          tempXAxis = -centerStrafeSpeed;
+        }
+
+        break;
       }
 
-      else
+      //reverse state
+      case "reverse":
       {
-        mecdrive.setDeadband(0);
-        tempXAxis = -centerStrafeSpeed;
-      }
-    }
-    else if (centerState.equals("reverse"))
-    {
-      if (centerIterations >= 25)
+        if (centerIterationsCount >= centerIterations)
+        {
+          centerIterationsCount = 0;
+          mecdrive.driveCartesian(0,0,0);
+          centerState = "come_back";
+        }
+  
+        else
+        {
+          tempXAxis = centerReverseSpeed;
+          centerIterationsCount += 1;
+        }
+
+        break;
+      }//end of reverse
+
+      //come back until line again
+      case "come_back":
       {
-        centerIterations = 0;
-        mecdrive.driveCartesian(0,0,0);
-        centerState = "stop";
+        if (alpha >= threshold)
+        {
+          centerState = "reverse2";
+        }
+  
+        else
+        {
+          tempXAxis = centerReverseSpeed;
+        }
+
+        break;
       }
 
-      else
+      //second reverse
+      case "reverse2":
       {
-        tempXAxis = centerReverseSpeed;
-        centerIterations += 1;
+        if (centerIterationsCount >= centerIterations2)
+        {
+          centerIterationsCount = 0;
+          mecdrive.driveCartesian(0,0,0);
+          centerState = "stop";
+        }
+  
+        else
+        {
+          tempXAxis = -centerReverseSpeed2;
+          centerIterationsCount += 1;
+        }
+
+        break;
       }
-    }
+    }//end of switch
 
     mecdrive.driveCartesian(tempXAxis,tempYAxis,tempRotation);
-  }
+  }//end of driveCenter()
 
   public void driveLineup()
   {
-    if (lineupState.equals("start"))
+    switch (lineupState)
+    {
+      //start lineup
+      case "start":
       {
         if (Math.abs(USSLout - USSRout) <= 2)
         {
@@ -457,7 +423,7 @@ public class Robot_Kevin_New_My extends TimedRobot
 
         else
         {
-          mecdrive.setDeadband(0);
+          mecdrive.driveCartesian(0,0,0);
           lineUS = ((USSLout - USSRout) / 500);
           SmartDashboard.putNumber("USSmod", USSmod);
 
@@ -470,10 +436,13 @@ public class Robot_Kevin_New_My extends TimedRobot
             tempRotation = -0.175 + lineUS;
           }
         }
-      }
 
-      mecdrive.driveCartesian(tempXAxis,tempYAxis,tempRotation);
-  }
+        break;
+      }
+    }//end of switch
+
+    mecdrive.driveCartesian(tempXAxis,tempYAxis,tempRotation);
+  }//end of driveLineup()
 
   public short readAlphaIntensity() {
     buffer.clear();
