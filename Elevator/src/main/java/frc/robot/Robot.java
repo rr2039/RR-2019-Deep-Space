@@ -52,12 +52,19 @@ public class Robot extends TimedRobot
   double gyroangle;
   boolean lineup;
   boolean center = false;
+  
   boolean hatchLevel1Button;
   boolean hatchLevel2Button;
   boolean hatchLevel3Button;
   boolean cargoLevel1Button;
   boolean cargoLevel2Button;
   boolean cargoLevel3Button;
+
+  //These variables determine the state of the pickup system.
+  boolean startingPositionButton;
+  boolean hatchingPositionButton;
+  boolean hatchingFloorPositionButton;
+  boolean cargoPositionButton;
   
   private double centerStrafeSpeed = 0.7;
   private double centerReverseSpeed = 0.4;
@@ -251,6 +258,22 @@ public class Robot extends TimedRobot
         {
           driveState = "cargoLevel1";
         }
+        else if (startingPositionButton)
+        {
+          driveState = "startingPosition";
+        }
+        else if (hatchingPositionButton)
+        {
+          driveState = "hatchingPosition";
+        }
+        else if (hatchingFloorPositionButton)
+        {
+          driveState = "hatchingFloorPosition";
+        }
+        else if (cargoPositionButton)
+        {
+          driveState = "cargoPosition";
+        }
   
         else
         {
@@ -300,44 +323,63 @@ public class Robot extends TimedRobot
         break;
       }//end of lineup
 
-      // Pickup thing states
+      // Pickup system states
 
-      case "starting":
+      case "startingStartingPosition":
       {
-        motor.set(ControlMode.Position, 0);
+        // Pickup system is inside frame.
+        driveNormal();
+      }
+
+      case "hatchingPosition":
+      {
+        // Position for hatching and picking up from loading station
+        driveNormal();
+      }
+
+      case "hatchFloorPosition":
+      {
+        // Position for picking hatches up from the floor
+        driveNormal();
+      }
+
+      case "cargoPosition":
+      {
+        // Position for cargo
+        driveNormal();
       }
       //Elevator states
       
       case "hatchLevel1":
       {
         //move until level 1
-        motor.set(ControlMode.Position, 0);
+        driveNormal();
       }
       case "hatchLevel2":
       {
         //move until level 2
-        motor.set(ControlMode.Position, 0);
+        driveNormal();
       }
       case "hatchLevel3":
       {
         //move until next level 3
-        motor.set(ControlMode.Position, 0);
+        driveNormal();
       }
      
       case "cargoLevel1":
       {
         //move until level 1
-        motor.set(ControlMode.Position, 0);
+        driveNormal();
       }
       case "cargoLevel2":
       {
         //move until level 2
-        motor.set(ControlMode.Position, 0);
+        driveNormal();
       }
       case "cargoLevel3":
       {
         //move until next level 3
-        motor.set(ControlMode.Position, 0);
+        driveNormal();
       }
     }//end of switch
 
