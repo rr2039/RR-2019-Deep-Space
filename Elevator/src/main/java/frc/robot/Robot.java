@@ -49,9 +49,14 @@ public class Robot extends TimedRobot
   double USSmod;
   double lineUS;
 
-  double gyroangle;
+  float error;
+  float yaw;
+  float targetYaw;
   boolean lineup;
   boolean center = false;
+  boolean driveStraightButton;
+  float feedbackLoopOutput;
+  float processedOutput;
   
   boolean hatchLevel1Button;
   boolean hatchLevel2Button;
@@ -63,7 +68,7 @@ public class Robot extends TimedRobot
   //These variables determine the state of the pickup system.
   boolean startingPositionButton;
   boolean hatchingPositionButton;
-  boolean hatchingFloorPositionButton;
+  boolean hatchFloorPositionButton;
   boolean cargoPositionButton;
   
   private double centerStrafeSpeed = 0.7;
@@ -87,6 +92,7 @@ public class Robot extends TimedRobot
   double slowmodifer = 1.0;
 
   Joystick joy2 = new Joystick(1);
+  AHRS ahrs;
 
   //Registries for the Color Sensor V2
   int CMD = 0x80;
@@ -149,6 +155,17 @@ public class Robot extends TimedRobot
     sensor.write(CMD | 0x00, PON | AEN | PEN);
     sensor.write(CMD | 0x01, (int) (256-integrationTime/2.38)); //configures the integration time (time for updating color data)
     sensor.write(CMD | 0x0E, 0b1111);
+
+    //Initialize NavX-Micro
+    try
+    {
+      ahrs = new AHRS(SerialPort.Port.kUSB1);
+      ahrs.enableLogging(true);
+    }
+    catch (RuntimeException ex)
+    {
+      DriverStation.reportError("Error in instantiating navx-Micro: " + ex.getMessage(), true);
+    }
   }
 // ----------------------------------------------------------------------------------------
   @Override
@@ -227,7 +244,11 @@ public class Robot extends TimedRobot
     cargoLevel1Button = SmartDashboard.getBoolean("Cargo Level 1", false);
     cargoLevel2Button = SmartDashboard.getBoolean("Cargo Level 2", false);
     cargoLevel3Button = SmartDashboard.getBoolean("Cargo Level 3", false);
-  
+    
+    startingPositionButton = SmartDashboard.getBoolean("Starting Positoin", false);
+    hatchingPositionButton = SmartDashboard.getBoolean("Hatching Position", false);
+    hatchFloorPositionButton = SmartDashboard.getBoolean("Hatch Floor Position", false);
+    cargoPositionButton = SmartDashboard.getBoolean("Cargo Position", false);
 
     switch (driveState)
     {
@@ -241,6 +262,10 @@ public class Robot extends TimedRobot
         else if (lineup && joy1.getRawButtonPressed(2))
         {
           driveState = "lineup";
+        }
+        else if (driveStraightButton)
+        {
+          driveState = "driveStraight";
         }
         else if (hatchLevel1Button)
         {
@@ -266,7 +291,7 @@ public class Robot extends TimedRobot
         {
           driveState = "hatchingPosition";
         }
-        else if (hatchingFloorPositionButton)
+        else if (hatchFloorPositionButton)
         {
           driveState = "hatchingFloorPosition";
         }
@@ -323,6 +348,12 @@ public class Robot extends TimedRobot
         break;
       }//end of lineup
 
+      case "driveStraight":
+      {
+        // Drive Straight using gyro.
+        driveStraight();
+        
+      }
       // Pickup system states
 
       case "startingStartingPosition":
@@ -561,6 +592,50 @@ public class Robot extends TimedRobot
     short alpha_value = buffer.getShort(0);
     if(alpha_value < 0) { alpha_value += 0b10000000000000000; }
     return alpha_value;
+  }
+
+  public float feedbackLoop(float target, float error)
+  {
+    return 15;
+  }
+
+  public float processOutput(float output)
+  {
+    output = output/1;
+    if (output > 1)
+    {
+      return 1;
+    }
+    else if (output < -1)
+    {
+      return -1;
+    }
+    else if (Math.abs(output) < 0.4)
+    {
+      return (float) 0.4;
+    }
+    else
+    {
+      return output;
+    }
+  }
+
+  public void driveStraight()
+  {
+    if (driveStraightButton == true)
+    {
+      ahrs.reset();
+      yaw = ahrs.getYaw();
+      targetYaw = yaw;
+    }
+    else
+    {
+      yaw = ahrs.getYaw();
+      error = Math.abs(0-yaw);
+      feedbackLoopOutput = feedbackLoop(targetYaw, error);
+      processedOutput = processOutput(feedbackLoopOutput); 
+      mecdrive.driveCartesian(0.5, 0, processedOutput);
+    }
   }
 
   public void goToLevel(int target_level)
