@@ -444,17 +444,17 @@ public class Robot extends TimedRobot
      //no exit conditions and operations
     else
     {
-      if (joy1.getRawButton(3) && joy1.getRawButtonPressed(3))//X
+      if (joy1.getRawButtonPressed(3))//X
       {
         driveState = "center";
         centerDirection = "left";
       }
-      else if (joy1.getRawButton(2) && joy1.getRawButtonPressed(2))//B
+      else if (joy1.getRawButtonPressed(2))//B
       {
         driveState = "center";
         centerDirection = "right";
       }
-      else if (joy1.getRawButton(4) && joy1.getRawButtonPressed(4))//Y
+      else if (joy1.getRawButtonPressed(4))//Y
       {
         driveState = "lineup";
       }
