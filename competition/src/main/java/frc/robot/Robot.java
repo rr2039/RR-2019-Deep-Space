@@ -90,6 +90,7 @@ public class Robot extends TimedRobot
   boolean cargoLevel1Button;
   boolean cargoLevel2Button;
   boolean cargoLevel3Button;
+  boolean disableSafetiesButton;
 
   //These variables determine the state of the pickup system.
   boolean startingPositionButton;
@@ -139,6 +140,9 @@ public class Robot extends TimedRobot
   final double liftCargoLevel3_Position = 0;
   final double wristCargoLevel3_Position = 0;
 
+  /* Limit Switches */
+  boolean liftLimitSwitch = false;
+  boolean wristLimitSwitch = false;
 
 /* Joystick 1 Control variables */
   Joystick joy1 = new Joystick(0);
@@ -273,6 +277,7 @@ public class Robot extends TimedRobot
 
     SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
     SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
+    
 
     /* Drivetrain Ramping */
     talonFR.configOpenloopRamp(0.20, 20);
@@ -517,14 +522,23 @@ public class Robot extends TimedRobot
     {
       case "manual":
       {
-        liftMotor.set(ControlMode.PercentOutput, 0);
-        wristMotor.set(ControlMode.PercentOutput, 0);
-      }
-      case "startingStartingPosition":
-      {
-        // Pickup system is inside frame.
-        liftMotor.set(ControlMode.Position, liftStartingPosition);
-        wristMotor.set(ControlMode.Position, wristStartingPosition);
+        //This may need to change to a different encoder position
+        if ((liftMotor.getSelectedSensorPosition() == liftHatchLevel3_Position | liftLimitSwitch == false) && disableSafetiesButton == true)
+        {
+          liftMotor.set(ControlMode.PercentOutput, joy1.getRawAxis(0));
+        }
+        else
+        {
+          liftMotor.set(ControlMode.PercentOutput, 0);
+        }
+        if (wristLimitSwitch == false | wristMotor.getSelectedSensorPosition() == wristHatchingFloorPosition)
+        {
+          wristMotor.set(ControlMode.PercentOutput, joy1.getRawAxis(1));
+        }
+        else
+        {
+          wristMotor.set(ControlMode.PercentOutput, 0);
+        }
       }
       case "hatchPickupPosition":
       {
