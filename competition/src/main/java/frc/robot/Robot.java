@@ -52,8 +52,8 @@ public class Robot extends TimedRobot
   double driveRotation;
 
 /* Ultrasonic Straightening Variables */
-  double USSLout;
-  double USSRout;
+  double USSLout = 0;
+  double USSRout = 0;
   double lineUS;
 
   /* Alignment Variables */
@@ -190,13 +190,19 @@ public class Robot extends TimedRobot
   WPI_TalonSRX talonBL = new WPI_TalonSRX(13);
 
   WPI_TalonSRX liftMotor = new WPI_TalonSRX(14);
-  WPI_TalonSRX wristMotor = new WPI_TalonSRX(0);
+  WPI_TalonSRX wristMotor = new WPI_TalonSRX(9);
+
+  WPI_TalonSRX climbL = new WPI_TalonSRX(12);
+  WPI_TalonSRX climbR = new WPI_TalonSRX(1);
+
+  WPI_TalonSRX WclimbL = new WPI_TalonSRX(8);
+  WPI_TalonSRX WclimbR = new WPI_TalonSRX(7);
 
   MecanumDrive mecdrive = new MecanumDrive(talonFL, talonBL, talonFR, talonBR);
   
   Compressor compressor = new Compressor(0);
-  DoubleSolenoid ejectorSolenoid = new DoubleSolenoid(1, 3);
-  DoubleSolenoid Solenoid2 = new DoubleSolenoid(0, 2);
+  Solenoid ejectorSolenoid = new Solenoid(4);
+  //DoubleSolenoid Solenoid2 = new DoubleSolenoid(0, 2);
 // ----------------------------------------------------------------------------------------
   @Override
   public void robotInit()
@@ -253,12 +259,55 @@ public class Robot extends TimedRobot
   @Override
   public void robotPeriodic()
   {
-
+    if (joy2.getRawButton(1) == true)
+    {
+      climbL.set(-1.0);
+      climbR.set(-1.0);
+    }
+    else if (joy2.getRawButton(4) == true)
+    {
+      climbL.set(1.0);
+      climbR.set(1.0);
+    }
+    else if (joy2.getRawButton(2) == true)
+    {
+      WclimbL.set(joy2.getRawAxis(2));
+      WclimbR.set(joy2.getRawAxis(3));
+    }
+    else if (joy2.getRawButton(8) == true)
+    {
+      climbL.set(joy2.getRawAxis(2));
+      climbR.set(joy2.getRawAxis(3));
+    }
+    else if (joy2.getRawButton(7) == true)
+    {
+      climbL.set(- joy2.getRawAxis(2));
+      climbR.set(- joy2.getRawAxis(3));
+    }
+    else
+    {
+      climbL.set(0);
+      climbR.set(0);
+      WclimbL.set(0);
+      WclimbR.set(0);
+    }
+  
+    if (joy2.getRawButton(3))
+    {
+      ejectorSolenoid.set(true);
+    }
+    else
+    {
+      ejectorSolenoid.set(false);
+    }
+    
     SmartDashboard.putNumber("alphavalue", alpha);
     center = joy2.getRawButton(5);
     slowdown = joy1.getRawButton(1);
     lineup = joy1.getRawButton(2);
     gyromove = joy1.getRawButton(3);
+    liftMotor.set(joy2.getRawAxis(1));
+    wristMotor.set(joy2.getRawAxis(5));
 
     ZRotation = ahrs.getAngle();
 
@@ -280,15 +329,15 @@ public class Robot extends TimedRobot
 
 
     /* Drivetrain Ramping */
-    talonFR.configOpenloopRamp(0.20, 20);
-    talonFL.configOpenloopRamp(0.20, 20);
-    talonBL.configOpenloopRamp(0.20, 20);
-    talonBR.configOpenloopRamp(0.20, 20);
+    talonFR.configOpenloopRamp(0.25, 20);
+    talonFL.configOpenloopRamp(0.25, 20);
+    talonBL.configOpenloopRamp(0.25, 20);
+    talonBR.configOpenloopRamp(0.25, 20);
 
     /* Deadzone Logic */
     //Potentially replace with setDeadBand()
-    //mecdrive.setDeadband(0.2);
-    if (joy2.getRawAxis(0) > deadzone || joy2.getRawAxis(0) < -deadzone)
+    mecdrive.setDeadband(0.2);
+   /* if (joy2.getRawAxis(0) > deadzone || joy2.getRawAxis(0) < -deadzone)
     {
       xaxis = joy2.getRawAxis(0);
     }
@@ -311,9 +360,9 @@ public class Robot extends TimedRobot
     else
     {
       rotation = 0;
-    }
+    } */
 
-    /* 
+    /*
     position = motor.getSelectedSensorPosition();
     velocity = motor.getSelectedSensorVelocity();
     */
@@ -349,7 +398,7 @@ public class Robot extends TimedRobot
     SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
     SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
     /* Pnumatics Logic */
-    if(joy2.getRawButton(1))
+    /* if(joy2.getRawButton(1))
     {
     ejectorSolenoid.set(DoubleSolenoid.Value.kForward);
     }
@@ -364,7 +413,7 @@ public class Robot extends TimedRobot
     else if(joy2.getRawButton(4))
     {
     Solenoid2.set(DoubleSolenoid.Value.kReverse);
-    }
+    } */
 
      //drive state switcher
      if (driveState.equals("center"))
@@ -372,9 +421,12 @@ public class Robot extends TimedRobot
        if (!center || centerState.equals("stop"))
        {
          tempXAxis = 0;
+         tempYAxis = 0;
+         tempRotation = 0;
          mecdrive.driveCartesian(0,0,0);
-         driveState = "normal";
+         lineupState = "start";
          centerState = "start";
+         driveState = "normal";
        }
      }
      else if (driveState.equals("lineup"))
@@ -392,24 +444,24 @@ public class Robot extends TimedRobot
      //no exit conditions and operations
     else
     {
-      if (center && joy1.getRawButtonPressed(3))//X
+      if (joy1.getRawButton(3) && joy1.getRawButtonPressed(3))//X
       {
         driveState = "center";
         centerDirection = "left";
       }
-      else if (center && joy1.getRawButtonPressed(2))//B
+      else if (joy1.getRawButton(2) && joy1.getRawButtonPressed(2))//B
       {
         driveState = "center";
         centerDirection = "right";
       }
-      else if (lineup && joy1.getRawButtonPressed(4))//Y
+      else if (joy1.getRawButton(4) && joy1.getRawButtonPressed(4))//Y
       {
         driveState = "lineup";
       }
       /*
       placeholders
       */
-      else if (joy1.getRawButtonPressed(1))//A, placeholder for potential touch screen control
+      else if (joy1.getRawButtonPressed(8))//A, placeholder for potential touch screen control
       {
         driveState = "fixedOrientation";
         gyroDirection = 1;//back right rocket
@@ -811,7 +863,7 @@ public class Robot extends TimedRobot
         {
           centerIterationsCount = 0;
           mecdrive.driveCartesian(0,0,0);
-          centerState = "stop";
+          centerState = "lineup";
         }
   
         else
@@ -828,6 +880,35 @@ public class Robot extends TimedRobot
         }
 
         break;
+      }
+
+      //lineup using ultrasonic sensors
+      case "lineup":
+      {
+        if (lineupState.equals("stop"))
+        {
+          tempXAxis = 0;
+          tempYAxis = 0;
+          tempRotation = 0;
+          mecdrive.driveCartesian(0,0,0); 
+          centerState = "drive_in";
+          lineupState = "start";
+        }
+      }
+
+      //lineup using ultrasonic sensors
+      case "drive_in":
+      {
+        if (USSLout <= 11)
+        {
+          mecdrive.driveCartesian(0,0,0);
+          centerState = "stop";
+        }
+
+        else
+        {
+          mecdrive.driveCartesian(0,0.4,0);
+        }
       }
     }//end of switch
 
@@ -849,7 +930,6 @@ public class Robot extends TimedRobot
 
         else
         {
-          mecdrive.driveCartesian(0,0,0);
           lineUS = ((USSLout - USSRout) / 500);
 
           if (USSLout > USSRout)
@@ -860,6 +940,8 @@ public class Robot extends TimedRobot
           {
             tempRotation = -0.175 + lineUS;
           }
+
+          mecdrive.driveCartesian(0,0,tempRotation);
         }
 
         break;
