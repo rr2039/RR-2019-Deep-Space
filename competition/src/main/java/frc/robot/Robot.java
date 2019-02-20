@@ -445,37 +445,41 @@ public class Robot extends TimedRobot
     }
 
     //Operator State Switcher
-    if (hatchLevel1Button)
+    if (joy1.getRawAxis(0) > 0.2 | joy1.getRawAxis(1) > 0.2 | joy1.getRawAxis(2) > 0.2 | joy1.getRawAxis(3) > 0.2)
     {
-      driveState = "hatchLevel1";
+      operatorState = "manual";
+    }
+    else if (hatchLevel1Button)
+    {
+      operatorState = "hatchLevel1";
     }
     else if (hatchLevel2Button)
     {
-      driveState = "hatchLevel2";
+      operatorState = "hatchLevel2";
     }
     else if (hatchLevel3Button)
     {
-      driveState = "hatchLevel3";
+      operatorState = "hatchLevel3";
     }
     else if (cargoLevel1Button)
     {
-      driveState = "cargoLevel1";
+      operatorState = "cargoLevel1";
     }
     else if (startingPositionButton)
     {
-      driveState = "startingPosition";
+      operatorState = "startingPosition";
     }
     else if (hatchingPositionButton)
     {
-      driveState = "hatchPickupPosition";
+      operatorState = "hatchPickupPosition";
     }
     else if (hatchFloorPositionButton)
     {
-      driveState = "hatchingFloorPickupPosition";
+      operatorState = "hatchingFloorPickupPosition";
     }
     else if (cargoPositionButton)
     {
-      driveState = "cargoPickupPosition";
+      operatorState = "cargoPickupPosition";
     }
 
     switch (driveState)
@@ -511,6 +515,11 @@ public class Robot extends TimedRobot
 
     switch (operatorState)
     {
+      case "manual":
+      {
+        liftMotor.set(ControlMode.PercentOutput, 0);
+        wristMotor.set(ControlMode.PercentOutput, 0);
+      }
       case "startingStartingPosition":
       {
         // Pickup system is inside frame.
