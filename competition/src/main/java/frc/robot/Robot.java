@@ -77,17 +77,78 @@ public class Robot extends TimedRobot
 
   /* Robot States */
   private String driveState = "normal";
+  private String operatorState = "idle";
   private String centerState = "start";
   private String lineupState = "start";
   private String centerDirection = "left";
   private int gyroDirection = 4;//facing front
 
+  /* Operator Buttons */
+  boolean hatchLevel1Button;
+  boolean hatchLevel2Button;
+  boolean hatchLevel3Button;
+  boolean cargoLevel1Button;
+  boolean cargoLevel2Button;
+  boolean cargoLevel3Button;
+  boolean disableSafetiesButton;
 
+  //These variables determine the state of the pickup system.
+  boolean startingPositionButton;
+  boolean hatchingPositionButton;
+  boolean hatchFloorPositionButton;
+  boolean cargoPositionButton;
+
+  /* Constants for the encoder values for required positions */
+
+  //Starting Positions
+  final double liftStartingPosition = 0;
+  final double wristStartingPosition = 0;
+  
+  //Hatching pickup positions
+  final double liftHatchingPosition = 0;
+  final double wristHatchingPosition = 0;
+
+  //Hatch pickup from floor positions
+  final double liftHatchingFloorPosition = 0;
+  final double wristHatchingFloorPosition = 0;
+  
+  //Cargo pickup positions
+  final double liftCargoPickupPosition = 0;
+  final double wristCargoPickupPosition = 0;
+  
+  //Hatch level 1 positions
+  final double liftHatchLevel1_Position = 0;
+  final double wristHatchLevel1_Position = 0;
+
+  //Hatch level 2 positions
+  final double liftHatchLevel2_Position = 0;
+  final double wristHatchLevel2_Position = 0;
+  
+  //hatch level 3 positions
+  final double liftHatchLevel3_Position = 0;
+  final double wristHatchLevel3_Position = 0;
+
+  //cargo level 1 positions
+  final double liftCargoLevel1_Position = 0;
+  final double wristCargoLevel1_Position = 0;
+
+  //Cargo level 2 positions
+  final double liftCargoLevel2_Position = 0;
+  final double wristCargoLevel2_Position = 0;
+
+  //Cargo level 3 positions
+  final double liftCargoLevel3_Position = 0;
+  final double wristCargoLevel3_Position = 0;
+
+  /* Limit Switches */
+  boolean liftLimitSwitch = false;
+  boolean wristLimitSwitch = false;
 
 /* Joystick 1 Control variables */
   Joystick joy1 = new Joystick(0);
   boolean slowdown = false;
   double slowmodifer = 1.0;
+  boolean clear = false;
 
   Joystick joy2 = new Joystick(1);
 
@@ -122,13 +183,14 @@ public class Robot extends TimedRobot
   AnalogInput sensorL = new AnalogInput(0);
   AnalogInput sensorR = new AnalogInput(1);
 
-  WPI_TalonSRX talonFR = new WPI_TalonSRX(3);
-  WPI_TalonSRX talonBR = new WPI_TalonSRX(4);
+  WPI_TalonSRX talonFR = new WPI_TalonSRX(2);
+  WPI_TalonSRX talonBR = new WPI_TalonSRX(3);
 
-  WPI_TalonSRX talonFL = new WPI_TalonSRX(1);
-  WPI_TalonSRX talonBL = new WPI_TalonSRX(2);
+  WPI_TalonSRX talonFL = new WPI_TalonSRX(15);
+  WPI_TalonSRX talonBL = new WPI_TalonSRX(13);
 
-  WPI_TalonSRX liftmotor = new WPI_TalonSRX(5);
+  WPI_TalonSRX liftMotor = new WPI_TalonSRX(14);
+  WPI_TalonSRX wristMotor = new WPI_TalonSRX(0);
 
   MecanumDrive mecdrive = new MecanumDrive(talonFL, talonBL, talonFR, talonBR);
   
@@ -168,6 +230,15 @@ public class Robot extends TimedRobot
     motor.configClearPositionOnQuadIdx(clear, 20);
   */
 
+    liftMotor.setSensorPhase(true);
+    liftMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
+    liftMotor.config_kP(0, 0.01, 30);
+    liftMotor.config_kI(0, 0.25, 30);
+    liftMotor.config_kD(0, 0.015, 30);
+    liftMotor.config_kF(0, 0.1, 30);
+    liftMotor.configClosedLoopPeriod(0, 1, 30);
+    liftMotor.configClearPositionOnQuadIdx(clear, 20);
+
    //NavX
    try
    {
@@ -203,6 +274,10 @@ public class Robot extends TimedRobot
     USSRout = (int) (sensorR.getAverageVoltage() * 147);
     SmartDashboard.putNumber("Ultrasonic L", USSLout);
     SmartDashboard.putNumber("Ultrasonic R", USSRout);
+
+    SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
+    SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
+    
 
     /* Drivetrain Ramping */
     talonFR.configOpenloopRamp(0.20, 20);
@@ -374,6 +449,44 @@ public class Robot extends TimedRobot
       }
     }
 
+    //Operator State Switcher
+    if (joy1.getRawAxis(0) > 0.2 | joy1.getRawAxis(1) > 0.2 | joy1.getRawAxis(2) > 0.2 | joy1.getRawAxis(3) > 0.2)
+    {
+      operatorState = "manual";
+    }
+    else if (hatchLevel1Button)
+    {
+      operatorState = "hatchLevel1";
+    }
+    else if (hatchLevel2Button)
+    {
+      operatorState = "hatchLevel2";
+    }
+    else if (hatchLevel3Button)
+    {
+      operatorState = "hatchLevel3";
+    }
+    else if (cargoLevel1Button)
+    {
+      operatorState = "cargoLevel1";
+    }
+    else if (startingPositionButton)
+    {
+      operatorState = "startingPosition";
+    }
+    else if (hatchingPositionButton)
+    {
+      operatorState = "hatchPickupPosition";
+    }
+    else if (hatchFloorPositionButton)
+    {
+      operatorState = "hatchingFloorPickupPosition";
+    }
+    else if (cargoPositionButton)
+    {
+      operatorState = "cargoPickupPosition";
+    }
+
     switch (driveState)
     {
       //normal drive state
@@ -404,6 +517,85 @@ public class Robot extends TimedRobot
         break;
       }
     }//end of switch
+
+    switch (operatorState)
+    {
+      case "manual":
+      {
+        //This may need to change to a different encoder position
+        if ((liftMotor.getSelectedSensorPosition() == liftHatchLevel3_Position | liftLimitSwitch == false) && disableSafetiesButton == true)
+        {
+          liftMotor.set(ControlMode.PercentOutput, joy1.getRawAxis(0));
+        }
+        else
+        {
+          liftMotor.set(ControlMode.PercentOutput, 0);
+        }
+        if (wristLimitSwitch == false | wristMotor.getSelectedSensorPosition() == wristHatchingFloorPosition)
+        {
+          wristMotor.set(ControlMode.PercentOutput, joy1.getRawAxis(1));
+        }
+        else
+        {
+          wristMotor.set(ControlMode.PercentOutput, 0);
+        }
+      }
+      case "hatchPickupPosition":
+      {
+        // Position for hatching and picking up from loading station
+        liftMotor.set(ControlMode.Position, liftHatchingPosition);
+        wristMotor.set(ControlMode.Position, wristHatchingPosition);
+      }
+      case "hatchPickupFloorPosition":
+      {
+        // Position for picking hatches up from the floor
+        liftMotor.set(ControlMode.Position, liftHatchingFloorPosition);
+        wristMotor.set(ControlMode.Position, wristHatchingFloorPosition);
+      }
+      case "cargoPickupPosition":
+      {
+        // Position for cargo
+        liftMotor.set(ControlMode.Position, liftCargoPickupPosition);
+        wristMotor.set(ControlMode.Position, wristCargoPickupPosition);
+      }
+      //Elevator states
+      case "hatchLevel1":
+      {
+        //move until level 1
+        liftMotor.set(ControlMode.Position, liftHatchLevel1_Position);
+        wristMotor.set(ControlMode.Position, wristHatchLevel1_Position);
+      }
+      case "hatchLevel2":
+      {
+        //move until level 2
+        liftMotor.set(ControlMode.Position, liftHatchLevel2_Position);
+        wristMotor.set(ControlMode.Position, wristHatchLevel2_Position);
+      }
+      case "hatchLevel3":
+      {
+        //move until next level 3
+        liftMotor.set(ControlMode.Position, liftHatchLevel3_Position);
+        wristMotor.set(ControlMode.Position, wristHatchLevel3_Position);
+      }
+      case "cargoLevel1":
+      {
+        //move until level 1
+        liftMotor.set(ControlMode.Position, liftCargoLevel1_Position);
+        wristMotor.set(ControlMode.Position, wristCargoLevel1_Position);
+      }
+      case "cargoLevel2":
+      {
+        //move until level 2
+        liftMotor.set(ControlMode.Position, liftCargoLevel2_Position);
+        wristMotor.set(ControlMode.Position, wristCargoLevel2_Position);
+      }
+      case "cargoLevel3":
+      {
+        //move until next level 3
+        liftMotor.set(ControlMode.Position, liftCargoLevel3_Position);
+        wristMotor.set(ControlMode.Position, wristCargoLevel3_Position);
+      }
+    }
   }
     // ----------------------------------------------------------------------------------------
   @Override
