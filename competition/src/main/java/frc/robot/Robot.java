@@ -370,9 +370,12 @@ public class Robot extends TimedRobot
        if (!center || centerState.equals("stop"))
        {
          tempXAxis = 0;
+         tempYAxis = 0;
+         tempRotation = 0;
          mecdrive.driveCartesian(0,0,0);
-         driveState = "normal";
+         lineupState = "start";
          centerState = "start";
+         driveState = "normal";
        }
      }
      else if (driveState.equals("lineup"))
@@ -809,7 +812,7 @@ public class Robot extends TimedRobot
         {
           centerIterationsCount = 0;
           mecdrive.driveCartesian(0,0,0);
-          centerState = "stop";
+          centerState = "lineup";
         }
   
         else
@@ -826,6 +829,35 @@ public class Robot extends TimedRobot
         }
 
         break;
+      }
+
+      //lineup using ultrasonic sensors
+      case "lineup":
+      {
+        if (lineupState.equals("stop"))
+        {
+          tempXAxis = 0;
+          tempYAxis = 0;
+          tempRotation = 0;
+          mecdrive.driveCartesian(0,0,0); 
+          centerState = "drive_in";
+          lineupState = "start";
+        }
+      }
+
+      //lineup using ultrasonic sensors
+      case "drive_in":
+      {
+        if (USSLout <= 11)
+        {
+          mecdrive.driveCartesian(0,0,0);
+          centerState = "stop";
+        }
+
+        else
+        {
+          mecdrive.driveCartesian(0,0.4,0);
+        }
       }
     }//end of switch
 
@@ -847,7 +879,6 @@ public class Robot extends TimedRobot
 
         else
         {
-          mecdrive.driveCartesian(0,0,0);
           lineUS = ((USSLout - USSRout) / 500);
 
           if (USSLout > USSRout)
@@ -858,6 +889,8 @@ public class Robot extends TimedRobot
           {
             tempRotation = -0.175 + lineUS;
           }
+
+          mecdrive.driveCartesian(0,0,tempRotation);
         }
 
         break;
