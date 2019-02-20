@@ -52,8 +52,8 @@ public class Robot extends TimedRobot
   double driveRotation;
 
 /* Ultrasonic Straightening Variables */
-  double USSLout;
-  double USSRout;
+  double USSLout = 0;
+  double USSRout = 0;
   double lineUS;
 
   /* Alignment Variables */
@@ -190,13 +190,19 @@ public class Robot extends TimedRobot
   WPI_TalonSRX talonBL = new WPI_TalonSRX(13);
 
   WPI_TalonSRX liftMotor = new WPI_TalonSRX(14);
-  WPI_TalonSRX wristMotor = new WPI_TalonSRX(0);
+  WPI_TalonSRX wristMotor = new WPI_TalonSRX(9);
+
+  WPI_TalonSRX climbL = new WPI_TalonSRX(12);
+  WPI_TalonSRX climbR = new WPI_TalonSRX(1);
+
+  WPI_TalonSRX WclimbL = new WPI_TalonSRX(8);
+  WPI_TalonSRX WclimbR = new WPI_TalonSRX(7);
 
   MecanumDrive mecdrive = new MecanumDrive(talonFL, talonBL, talonFR, talonBR);
   
   Compressor compressor = new Compressor(0);
-  DoubleSolenoid ejectorSolenoid = new DoubleSolenoid(1, 3);
-  DoubleSolenoid Solenoid2 = new DoubleSolenoid(0, 2);
+  Solenoid ejectorSolenoid = new Solenoid(4);
+  //DoubleSolenoid Solenoid2 = new DoubleSolenoid(0, 2);
 // ----------------------------------------------------------------------------------------
   @Override
   public void robotInit()
@@ -253,12 +259,55 @@ public class Robot extends TimedRobot
   @Override
   public void robotPeriodic()
   {
-
+    if (joy2.getRawButton(1) == true)
+    {
+      climbL.set(-1.0);
+      climbR.set(-1.0);
+    }
+    else if (joy2.getRawButton(4) == true)
+    {
+      climbL.set(1.0);
+      climbR.set(1.0);
+    }
+    else if (joy2.getRawButton(2) == true)
+    {
+      WclimbL.set(joy2.getRawAxis(2));
+      WclimbR.set(joy2.getRawAxis(3));
+    }
+    else if (joy2.getRawButton(8) == true)
+    {
+      climbL.set(joy2.getRawAxis(2));
+      climbR.set(joy2.getRawAxis(3));
+    }
+    else if (joy2.getRawButton(7) == true)
+    {
+      climbL.set(- joy2.getRawAxis(2));
+      climbR.set(- joy2.getRawAxis(3));
+    }
+    else
+    {
+      climbL.set(0);
+      climbR.set(0);
+      WclimbL.set(0);
+      WclimbR.set(0);
+    }
+  
+    if (joy2.getRawButton(3))
+    {
+      ejectorSolenoid.set(true);
+    }
+    else
+    {
+      ejectorSolenoid.set(false);
+    }
+    
     SmartDashboard.putNumber("alphavalue", alpha);
     center = joy2.getRawButton(5);
     //slowdown = joy1.getRawButton(1);
     lineup = joy1.getRawButton(2);
     gyromove = joy1.getRawButton(3);
+    liftMotor.set(joy2.getRawAxis(1));
+    wristMotor.set(joy2.getRawAxis(5));
 
     ZRotation = ahrs.getAngle();
 
@@ -277,28 +326,28 @@ public class Robot extends TimedRobot
 
     SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
     SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
-    
+
 
     /* Drivetrain Ramping */
-    talonFR.configOpenloopRamp(0.20, 20);
-    talonFL.configOpenloopRamp(0.20, 20);
-    talonBL.configOpenloopRamp(0.20, 20);
-    talonBR.configOpenloopRamp(0.20, 20);
+    talonFR.configOpenloopRamp(0.25, 20);
+    talonFL.configOpenloopRamp(0.25, 20);
+    talonBL.configOpenloopRamp(0.25, 20);
+    talonBR.configOpenloopRamp(0.25, 20);
 
     /* Deadzone Logic */
     //Potentially replace with setDeadBand()
-    //mecdrive.setDeadband(0.2);
-    if (joy1.getRawAxis(0) > deadzone || joy1.getRawAxis(0) < -deadzone)
+    mecdrive.setDeadband(0.2);
+   /* if (joy2.getRawAxis(0) > deadzone || joy2.getRawAxis(0) < -deadzone)
     {
-      xaxis = joy1.getRawAxis(0);
+      xaxis = joy2.getRawAxis(0);
     }
     else
     {
       xaxis = 0;
     }
-    if (joy1.getRawAxis(1) > deadzone || joy1.getRawAxis(1) < -deadzone)
+    if (joy2.getRawAxis(1) > deadzone || joy2.getRawAxis(1) < -deadzone)
     {
-      yaxis = joy1.getRawAxis(1);
+      yaxis = joy2.getRawAxis(1);
     }
     else
     {
@@ -311,9 +360,9 @@ public class Robot extends TimedRobot
     else
     {
       rotation = 0;
-    }
+    } */
 
-    /* 
+    /*
     position = motor.getSelectedSensorPosition();
     velocity = motor.getSelectedSensorVelocity();
     */
@@ -346,8 +395,10 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic()
   {
+    SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
+    SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
     /* Pnumatics Logic */
-    if(joy2.getRawButton(1))
+    /* if(joy2.getRawButton(1))
     {
     ejectorSolenoid.set(DoubleSolenoid.Value.kForward);
     }
@@ -362,7 +413,7 @@ public class Robot extends TimedRobot
     else if(joy2.getRawButton(4))
     {
     Solenoid2.set(DoubleSolenoid.Value.kReverse);
-    }
+    } */
 
      //drive state switcher
      if (driveState.equals("center"))
@@ -410,7 +461,7 @@ public class Robot extends TimedRobot
       /*
       placeholders
       */
-      else if (joy1.getRawButton(1))//A, placeholder for potential touch screen control
+      else if (joy1.getRawButtonPressed(8))//A, placeholder for potential touch screen control
       {
         driveState = "fixedOrientation";
         gyroDirection = 1;//back right rocket
@@ -564,37 +615,37 @@ public class Robot extends TimedRobot
       //Elevator states
       case "hatchLevel1":
       {
-        //move until level 1
+        //move until level 1 (1 ft. 7 in.)
         liftMotor.set(ControlMode.Position, liftHatchLevel1_Position);
         wristMotor.set(ControlMode.Position, wristHatchLevel1_Position);
       }
       case "hatchLevel2":
       {
-        //move until level 2
+        //move until level 2 (3 ft. 11 in.)
         liftMotor.set(ControlMode.Position, liftHatchLevel2_Position);
         wristMotor.set(ControlMode.Position, wristHatchLevel2_Position);
       }
       case "hatchLevel3":
       {
-        //move until next level 3
+        //move until next level 3 (5 ft. 15 in.)
         liftMotor.set(ControlMode.Position, liftHatchLevel3_Position);
         wristMotor.set(ControlMode.Position, wristHatchLevel3_Position);
       }
       case "cargoLevel1":
       {
-        //move until level 1
+        //move until level 1 (2 ft. 3.5 in.)
         liftMotor.set(ControlMode.Position, liftCargoLevel1_Position);
         wristMotor.set(ControlMode.Position, wristCargoLevel1_Position);
       }
       case "cargoLevel2":
       {
-        //move until level 2
+        //move until level 2 (4 ft. 7.5 in)
         liftMotor.set(ControlMode.Position, liftCargoLevel2_Position);
         wristMotor.set(ControlMode.Position, wristCargoLevel2_Position);
       }
       case "cargoLevel3":
       {
-        //move until next level 3
+        //move until next level 3 (6 ft. 11.5 in)
         liftMotor.set(ControlMode.Position, liftCargoLevel3_Position);
         wristMotor.set(ControlMode.Position, wristCargoLevel3_Position);
       }
