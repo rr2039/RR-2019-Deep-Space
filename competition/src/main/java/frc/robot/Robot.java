@@ -256,7 +256,7 @@ public class Robot extends TimedRobot
 
     SmartDashboard.putNumber("alphavalue", alpha);
     center = joy2.getRawButton(5);
-    slowdown = joy1.getRawButton(1);
+    //slowdown = joy1.getRawButton(1);
     lineup = joy1.getRawButton(2);
     gyromove = joy1.getRawButton(3);
 
@@ -393,24 +393,24 @@ public class Robot extends TimedRobot
      //no exit conditions and operations
     else
     {
-      if (center && joy1.getRawButtonPressed(3))//X
+      if (joy1.getRawButton(3) && joy1.getRawButtonPressed(3))//X
       {
         driveState = "center";
         centerDirection = "left";
       }
-      else if (center && joy1.getRawButtonPressed(2))//B
+      else if (joy1.getRawButton(2) && joy1.getRawButtonPressed(2))//B
       {
         driveState = "center";
         centerDirection = "right";
       }
-      else if (lineup && joy1.getRawButtonPressed(4))//Y
+      else if (joy1.getRawButton(4) && joy1.getRawButtonPressed(4))//Y
       {
         driveState = "lineup";
       }
       /*
       placeholders
       */
-      else if (joy1.getRawButtonPressed(1))//A, placeholder for potential touch screen control
+      else if (joy1.getRawButton(1))//A, placeholder for potential touch screen control
       {
         driveState = "fixedOrientation";
         gyroDirection = 1;//back right rocket
