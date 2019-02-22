@@ -145,12 +145,12 @@ public class Robot extends TimedRobot
   boolean wristLimitSwitch = false;
 
 /* Joystick 1 Control variables */
-  Joystick joy1 = new Joystick(0);
+  Joystick driveJoy = new Joystick(0);
   boolean slowdown = false;
   double slowmodifer = 1.0;
   boolean clear = false;
 
-  Joystick joy2 = new Joystick(1);
+  Joystick operatorJoy = new Joystick(1);
 
 /* Color Sensor API Variables */
   final int CMD = 0x80;
@@ -255,10 +255,10 @@ public class Robot extends TimedRobot
   {
 
     SmartDashboard.putNumber("alphavalue", alpha);
-    center = joy2.getRawButton(5);
-    slowdown = joy1.getRawButton(1);
-    lineup = joy1.getRawButton(2);
-    gyromove = joy1.getRawButton(3);
+    center = operatorJoy.getRawButton(5);
+    slowdown = driveJoy.getRawButton(1);
+    lineup = driveJoy.getRawButton(2);
+    gyromove = driveJoy.getRawButton(3);
 
     ZRotation = ahrs.getAngle();
 
@@ -288,25 +288,25 @@ public class Robot extends TimedRobot
     /* Deadzone Logic */
     //Potentially replace with setDeadBand()
     //mecdrive.setDeadband(0.2);
-    if (joy2.getRawAxis(0) > deadzone || joy2.getRawAxis(0) < -deadzone)
+    if (operatorJoy.getRawAxis(0) > deadzone || operatorJoy.getRawAxis(0) < -deadzone)
     {
-      xaxis = joy2.getRawAxis(0);
+      xaxis = operatorJoy.getRawAxis(0);
     }
     else
     {
       xaxis = 0;
     }
-    if (joy2.getRawAxis(1) > deadzone || joy2.getRawAxis(1) < -deadzone)
+    if (operatorJoy.getRawAxis(1) > deadzone || operatorJoy.getRawAxis(1) < -deadzone)
     {
-      yaxis = joy2.getRawAxis(1);
+      yaxis = operatorJoy.getRawAxis(1);
     }
     else
     {
       yaxis = 0;
     }
-    if (joy1.getRawAxis(4) > deadzone || joy1.getRawAxis(4) < -deadzone)
+    if (driveJoy.getRawAxis(4) > deadzone || driveJoy.getRawAxis(4) < -deadzone)
     {
-      rotation = joy1.getRawAxis(4);
+      rotation = driveJoy.getRawAxis(4);
     }
     else
     {
@@ -349,19 +349,19 @@ public class Robot extends TimedRobot
     SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
     SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
     /* Pnumatics Logic */
-    if(joy2.getRawButton(1))
+    if(operatorJoy.getRawButton(1))
     {
     ejectorSolenoid.set(DoubleSolenoid.Value.kForward);
     }
-    else if(joy2.getRawButton(2))
+    else if(operatorJoy.getRawButton(2))
     {
     ejectorSolenoid.set(DoubleSolenoid.Value.kReverse);
     }
-    if(joy2.getRawButton(3))
+    if(operatorJoy.getRawButton(3))
     {
     Solenoid2.set(DoubleSolenoid.Value.kForward);
     }
-    else if(joy2.getRawButton(4))
+    else if(operatorJoy.getRawButton(4))
     {
     Solenoid2.set(DoubleSolenoid.Value.kReverse);
     }
@@ -392,24 +392,24 @@ public class Robot extends TimedRobot
      //no exit conditions and operations
     else
     {
-      if (center && joy1.getRawButtonPressed(3))//X
+      if (center && driveJoy.getRawButtonPressed(3))//X
       {
         driveState = "center";
         centerDirection = "left";
       }
-      else if (center && joy1.getRawButtonPressed(2))//B
+      else if (center && driveJoy.getRawButtonPressed(2))//B
       {
         driveState = "center";
         centerDirection = "right";
       }
-      else if (lineup && joy1.getRawButtonPressed(4))//Y
+      else if (lineup && driveJoy.getRawButtonPressed(4))//Y
       {
         driveState = "lineup";
       }
       /*
       placeholders
       */
-      else if (joy1.getRawButtonPressed(1))//A, placeholder for potential touch screen control
+      else if (driveJoy.getRawButtonPressed(1))//A, placeholder for potential touch screen control
       {
         driveState = "fixedOrientation";
         gyroDirection = 1;//back right rocket
@@ -452,7 +452,7 @@ public class Robot extends TimedRobot
     }
 
     //Operator State Switcher
-    if (joy1.getRawAxis(0) > 0.2 | joy1.getRawAxis(1) > 0.2 | joy1.getRawAxis(2) > 0.2 | joy1.getRawAxis(3) > 0.2)
+    if (operatorJoy.getRawAxis(0) > 0.2 | operatorJoy.getRawAxis(1) > 0.2 | operatorJoy.getRawAxis(2) > 0.2 | operatorJoy.getRawAxis(3) > 0.2)
     {
       operatorState = "manual";
     }
@@ -527,7 +527,7 @@ public class Robot extends TimedRobot
         //This may need to change to a different encoder position
         if ((liftMotor.getSelectedSensorPosition() == liftHatchLevel3_Position | liftLimitSwitch == false) && disableSafetiesButton == true)
         {
-          liftMotor.set(ControlMode.PercentOutput, joy1.getRawAxis(0));
+          liftMotor.set(ControlMode.PercentOutput, operatorJoy.getRawAxis(0));
         }
         else
         {
@@ -535,7 +535,7 @@ public class Robot extends TimedRobot
         }
         if (wristLimitSwitch == false | wristMotor.getSelectedSensorPosition() == wristHatchingFloorPosition)
         {
-          wristMotor.set(ControlMode.PercentOutput, joy1.getRawAxis(1));
+          wristMotor.set(ControlMode.PercentOutput, operatorJoy.getRawAxis(1));
         }
         else
         {
@@ -593,7 +593,7 @@ public class Robot extends TimedRobot
       }
       case "cargoLevel3":
       {
-        //level 3 is 6 ft. 11.5 in
+        //level 3 is (6 ft. 11.5 in
         liftMotor.set(ControlMode.Position, liftCargoLevel3_Position);
         wristMotor.set(ControlMode.Position, wristCargoLevel3_Position);
       }
@@ -647,9 +647,9 @@ public class Robot extends TimedRobot
       slowmodifer = 1.0;
     }
 
-    driveXAxis = joy1.getRawAxis(0);
-    driveYAxis = joy1.getRawAxis(1);
-    driveRotation = joy1.getRawAxis(4);
+    driveXAxis = driveJoy.getRawAxis(0);
+    driveYAxis = driveJoy.getRawAxis(1);
+    driveRotation = driveJoy.getRawAxis(4);
     mecdrive.driveCartesian(driveXAxis * slowmodifer, -driveYAxis * slowmodifer, driveRotation * slowmodifer);
   }
 
@@ -665,8 +665,8 @@ public class Robot extends TimedRobot
       slowmodifer = 1.0;
     }
 
-    driveXAxis = joy1.getRawAxis(0);
-    driveYAxis = joy1.getRawAxis(1);
+    driveXAxis = driveJoy.getRawAxis(0);
+    driveYAxis = driveJoy.getRawAxis(1);
     double error = 0;
     double angle = 0;
     double heading = ahrs.getAngle();
