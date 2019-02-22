@@ -563,37 +563,37 @@ public class Robot extends TimedRobot
       //Elevator states
       case "hatchLevel1":
       {
-        //move until level 1 (1 ft. 7 in.)
+        //level 1 is 1 ft. 7 in.
         liftMotor.set(ControlMode.Position, liftHatchLevel1_Position);
         wristMotor.set(ControlMode.Position, wristHatchLevel1_Position);
       }
       case "hatchLevel2":
       {
-        //move until level 2 (3 ft. 11 in.)
+        //level 2 is 3 ft. 11 in.
         liftMotor.set(ControlMode.Position, liftHatchLevel2_Position);
         wristMotor.set(ControlMode.Position, wristHatchLevel2_Position);
       }
       case "hatchLevel3":
       {
-        //move until next level 3 (5 ft. 15 in.)
+        //level 3 is 5 ft. 15 in.
         liftMotor.set(ControlMode.Position, liftHatchLevel3_Position);
         wristMotor.set(ControlMode.Position, wristHatchLevel3_Position);
       }
       case "cargoLevel1":
       {
-        //move until level 1 (2 ft. 3.5 in.)
+        //level 1 is 2 ft. 3.5 in.
         liftMotor.set(ControlMode.Position, liftCargoLevel1_Position);
         wristMotor.set(ControlMode.Position, wristCargoLevel1_Position);
       }
       case "cargoLevel2":
       {
-        //move until level 2 (4 ft. 7.5 in)
+        //level 2 is 4 ft. 7.5 in
         liftMotor.set(ControlMode.Position, liftCargoLevel2_Position);
         wristMotor.set(ControlMode.Position, wristCargoLevel2_Position);
       }
       case "cargoLevel3":
       {
-        //move until next level 3 (6 ft. 11.5 in)
+        //level 3 is 6 ft. 11.5 in
         liftMotor.set(ControlMode.Position, liftCargoLevel3_Position);
         wristMotor.set(ControlMode.Position, wristCargoLevel3_Position);
       }
