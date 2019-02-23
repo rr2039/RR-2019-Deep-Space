@@ -21,6 +21,9 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+
+import javax.lang.model.util.ElementScanner6;
+
 import com.ctre.phoenix.motorcontrol.*;
 
 // ----------------------------------------------------------------------------------------
@@ -77,7 +80,6 @@ public class Robot extends TimedRobot
 
   /* Robot States */
   private String driveState = "normal";
-  private String operatorState = "idle";
   private String centerState = "start";
   private String lineupState = "start";
   private String centerDirection = "left";
@@ -94,7 +96,7 @@ public class Robot extends TimedRobot
 
   //These variables determine the state of the pickup system.
   boolean startingPositionButton;
-  boolean hatchingPositionButton;
+  boolean hatchingPositionButton; //This is the same as hatch level 1
   boolean hatchFloorPositionButton;
   boolean cargoPositionButton;
 
@@ -409,45 +411,7 @@ public class Robot extends TimedRobot
       }
     }
 
-    //Operator State Switcher
-    if (operatorJoy.getRawAxis(0) > 0.2 | operatorJoy.getRawAxis(1) > 0.2 | operatorJoy.getRawAxis(2) > 0.2 | operatorJoy.getRawAxis(3) > 0.2)
-    {
-      operatorState = "manual";
-    }
-    else if (hatchLevel1Button)
-    {
-      operatorState = "hatchLevel1";
-    }
-    else if (hatchLevel2Button)
-    {
-      operatorState = "hatchLevel2";
-    }
-    else if (hatchLevel3Button)
-    {
-      operatorState = "hatchLevel3";
-    }
-    else if (cargoLevel1Button)
-    {
-      operatorState = "cargoLevel1";
-    }
-    else if (startingPositionButton)
-    {
-      operatorState = "startingPosition";
-    }
-    else if (hatchingPositionButton)
-    {
-      operatorState = "hatchPickupPosition";
-    }
-    else if (hatchFloorPositionButton)
-    {
-      operatorState = "hatchingFloorPickupPosition";
-    }
-    else if (cargoPositionButton)
-    {
-      operatorState = "cargoPickupPosition";
-    }
-
-    switch (driveState)
+  switch (driveState)
     {
       //normal drive state
       case "normal":
@@ -478,83 +442,64 @@ public class Robot extends TimedRobot
       }
     }//end of switch
 
-    switch (operatorState)
+    //Operator states
+    if (operatorJoy.getRawAxis(0) > 0.2 || operatorJoy.getRawAxis(1) > 0.2 || operatorJoy.getRawAxis(2) > 0.2)
     {
-      case "manual":
-      {
-        //Set limits for wrist
-        if ((liftMotor.getSelectedSensorPosition() == linearEncoderConversion(0) | liftLimitSwitch == false) && disableSafetiesButton == true)
-        {
-          liftMotor.set(ControlMode.PercentOutput, operatorJoy.getRawAxis(0));
-        }
-        else
-        {
-          liftMotor.set(ControlMode.PercentOutput, 0);
-        }
-        if (wristLimitSwitch == false | wristMotor.getSelectedSensorPosition() == linearEncoderConversion(0))
-        {
-          wristMotor.set(ControlMode.PercentOutput, operatorJoy.getRawAxis(1));
-        }
-        else
-        {
-          wristMotor.set(ControlMode.PercentOutput, 0);
-        }
-      }
-      case "hatchPickupPosition":
-      {
-        // Position for hatching and picking up from loading station
-        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, 0);
-      }
-      case "hatchPickupFloorPosition":
-      {
-        // Position for picking hatches up from the floor
-        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, 0);
-      }
-      case "cargoPickupPosition":
-      {
-        // Position for cargo
-        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, 0);
-      }
-      //Elevator states
-      case "hatchLevel1":
-      {
-        //level 1 is 1 ft. 7 in.
-        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, 0);
-      }
-      case "hatchLevel2":
-      {
-        //level 2 is 3 ft. 11 in.
-        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, 0);
-      }
-      case "hatchLevel3":
-      {
-        //level 3 is 5 ft. 15 in.
-        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, 0);
-      }
-      case "cargoLevel1":
-      {
-        //level 1 is 2 ft. 3.5 in.
-        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, 0);
-      }
-      case "cargoLevel2":
-      {
-        //level 2 is 4 ft. 7.5 in
-        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, 0);
-      }
-      case "cargoLevel3":
-      {
-        //level 3 is (6 ft. 11.5 in
-        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, 0);
-      }
+      liftMotorSafe(operatorJoy.getRawAxis(0));
+    }
+    else
+    {
+      liftMotor.set(ControlMode.PercentOutput, 0);
+    }
+    if (wristLimitSwitch == false | wristMotor.getSelectedSensorPosition() == linearEncoderConversion(0))
+    {
+      wristMotor.set(ControlMode.PercentOutput, operatorJoy.getRawAxis(1));
+    }
+    else if (hatchFloorPositionButton)
+    {
+      liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+      wristMotor.set(ControlMode.Position, 0);
+    }
+    else if (hatchingPositionButton)
+    {
+      liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+      wristMotor.set(ControlMode.Position, 0);
+    }
+    else if (hatchLevel1Button)
+    {
+      //Level 1 is 1 ft. 7 in
+      liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+      wristMotor.set(ControlMode.Position, 0);
+    }
+    else if (hatchLevel2Button)
+    {
+      //Level 2 is 3 ft. 11 in
+      liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+      wristMotor.set(ControlMode.Position, 0); 
+    }
+    else if (hatchLevel3Button)
+    {
+      //Level 3 is 5 ft. 15 in.
+      liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+      wristMotor.set(ControlMode.Position, 0); 
+    }
+    else if (cargoLevel1Button)
+    {
+      //Level 1 is 2 ft. 3.5 in.
+      liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+      wristMotor.set(ControlMode.Position, 0); 
+    }
+    else if (cargoLevel2Button)
+    {
+      //Level 2 is 4 ft. 7.5 in.
+      liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+      wristMotor.set(ControlMode.Position, 0); 
+    }
+    else if (cargoLevel3Button)
+    {
+      //Level 3 is 6 ft. 11.5 in.
+      liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+      wristMotor.set(ControlMode.Position, 0); 
     }
   }
     // ----------------------------------------------------------------------------------------
@@ -832,5 +777,21 @@ public class Robot extends TimedRobot
     //The sprocked circumference is either 10 or 12.89
     //The equation is sprocketCircumference/encoderTicksPerRevolution/gearRatio
     return 10/1024/3;
+  }
+
+  public void liftMotorSafe(double speed)
+  {
+    if (liftMotor.getSelectedSensorPosition() == 0 && speed > 0)
+    {
+      liftMotor.set(ControlMode.PercentOutput, 0);
+    }
+    else if(liftLimitSwitch == true && speed < 0)
+    {
+      liftMotor.set(ControlMode.PercentOutput, 0);
+    }
+    else
+    {
+      liftMotor.set(ControlMode.PercentOutput, speed);
+    }
   }
 }
