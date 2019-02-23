@@ -98,48 +98,6 @@ public class Robot extends TimedRobot
   boolean hatchFloorPositionButton;
   boolean cargoPositionButton;
 
-  /* Constants for the encoder values for required positions */
-
-  //Starting Positions
-  final double liftStartingPosition = 0;
-  final double wristStartingPosition = 0;
-  
-  //Hatching pickup positions
-  final double liftHatchingPosition = 0;
-  final double wristHatchingPosition = 0;
-
-  //Hatch pickup from floor positions
-  final double liftHatchingFloorPosition = 0;
-  final double wristHatchingFloorPosition = 0;
-  
-  //Cargo pickup positions
-  final double liftCargoPickupPosition = 0;
-  final double wristCargoPickupPosition = 0;
-  
-  //Hatch level 1 positions
-  final double liftHatchLevel1_Position = 0;
-  final double wristHatchLevel1_Position = 0;
-
-  //Hatch level 2 positions
-  final double liftHatchLevel2_Position = 0;
-  final double wristHatchLevel2_Position = 0;
-  
-  //hatch level 3 positions
-  final double liftHatchLevel3_Position = 0;
-  final double wristHatchLevel3_Position = 0;
-
-  //cargo level 1 positions
-  final double liftCargoLevel1_Position = 0;
-  final double wristCargoLevel1_Position = 0;
-
-  //Cargo level 2 positions
-  final double liftCargoLevel2_Position = 0;
-  final double wristCargoLevel2_Position = 0;
-
-  //Cargo level 3 positions
-  final double liftCargoLevel3_Position = 0;
-  final double wristCargoLevel3_Position = 0;
-
   /* Limit Switches */
   boolean liftLimitSwitch = false;
   boolean wristLimitSwitch = false;
@@ -204,7 +162,7 @@ public class Robot extends TimedRobot
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
-
+    
     /* Initialize and Configure Cameras */
     UsbCamera camera1 = CameraServer.getInstance().startAutomaticCapture(0);
     camera1.setResolution(640, 400);
@@ -524,8 +482,8 @@ public class Robot extends TimedRobot
     {
       case "manual":
       {
-        //This may need to change to a different encoder position
-        if ((liftMotor.getSelectedSensorPosition() == liftHatchLevel3_Position | liftLimitSwitch == false) && disableSafetiesButton == true)
+        //Set limits for wrist
+        if ((liftMotor.getSelectedSensorPosition() == linearEncoderConversion(0) | liftLimitSwitch == false) && disableSafetiesButton == true)
         {
           liftMotor.set(ControlMode.PercentOutput, operatorJoy.getRawAxis(0));
         }
@@ -533,7 +491,7 @@ public class Robot extends TimedRobot
         {
           liftMotor.set(ControlMode.PercentOutput, 0);
         }
-        if (wristLimitSwitch == false | wristMotor.getSelectedSensorPosition() == wristHatchingFloorPosition)
+        if (wristLimitSwitch == false | wristMotor.getSelectedSensorPosition() == linearEncoderConversion(0))
         {
           wristMotor.set(ControlMode.PercentOutput, operatorJoy.getRawAxis(1));
         }
@@ -545,57 +503,57 @@ public class Robot extends TimedRobot
       case "hatchPickupPosition":
       {
         // Position for hatching and picking up from loading station
-        liftMotor.set(ControlMode.Position, liftHatchingPosition);
-        wristMotor.set(ControlMode.Position, wristHatchingPosition);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, 0);
       }
       case "hatchPickupFloorPosition":
       {
         // Position for picking hatches up from the floor
-        liftMotor.set(ControlMode.Position, liftHatchingFloorPosition);
-        wristMotor.set(ControlMode.Position, wristHatchingFloorPosition);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, 0);
       }
       case "cargoPickupPosition":
       {
         // Position for cargo
-        liftMotor.set(ControlMode.Position, liftCargoPickupPosition);
-        wristMotor.set(ControlMode.Position, wristCargoPickupPosition);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, 0);
       }
       //Elevator states
       case "hatchLevel1":
       {
         //level 1 is 1 ft. 7 in.
-        liftMotor.set(ControlMode.Position, liftHatchLevel1_Position);
-        wristMotor.set(ControlMode.Position, wristHatchLevel1_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, 0);
       }
       case "hatchLevel2":
       {
         //level 2 is 3 ft. 11 in.
-        liftMotor.set(ControlMode.Position, liftHatchLevel2_Position);
-        wristMotor.set(ControlMode.Position, wristHatchLevel2_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, 0);
       }
       case "hatchLevel3":
       {
         //level 3 is 5 ft. 15 in.
-        liftMotor.set(ControlMode.Position, liftHatchLevel3_Position);
-        wristMotor.set(ControlMode.Position, wristHatchLevel3_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, 0);
       }
       case "cargoLevel1":
       {
         //level 1 is 2 ft. 3.5 in.
-        liftMotor.set(ControlMode.Position, liftCargoLevel1_Position);
-        wristMotor.set(ControlMode.Position, wristCargoLevel1_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, 0);
       }
       case "cargoLevel2":
       {
         //level 2 is 4 ft. 7.5 in
-        liftMotor.set(ControlMode.Position, liftCargoLevel2_Position);
-        wristMotor.set(ControlMode.Position, wristCargoLevel2_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, 0);
       }
       case "cargoLevel3":
       {
         //level 3 is (6 ft. 11.5 in
-        liftMotor.set(ControlMode.Position, liftCargoLevel3_Position);
-        wristMotor.set(ControlMode.Position, wristCargoLevel3_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, 0);
       }
     }
   }
@@ -868,4 +826,11 @@ public class Robot extends TimedRobot
 
     mecdrive.driveCartesian(tempXAxis,tempYAxis,tempRotation);
   }//end of driveLineup()
+
+  public double linearEncoderConversion(double targetInches)
+  {
+    //The sprocked circumference is either 10 or 12.89
+    //The equation is sprocketCircumference/encoderTicksPerRevolution/gearRatio
+    return 10/1024/3;
+  }
 }
