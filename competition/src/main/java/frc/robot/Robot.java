@@ -137,11 +137,12 @@ public class Robot extends TimedRobot
   I2C colorSensor = new I2C(I2C.Port.kOnboard, 0x39);
 
 // Everything Else
+  //Instantiate the navx-mxp
   AHRS ahrs = new AHRS(SerialPort.Port.kUSB1);
   double ZRotation = 0;
 
-  AnalogInput sensorL = new AnalogInput(0);
-  AnalogInput sensorR = new AnalogInput(1);
+  AnalogInput leftUltrasonic = new AnalogInput(0);
+  AnalogInput LeftUltrasonic = new AnalogInput(1);
 
   WPI_TalonSRX talonFR = new WPI_TalonSRX(2);
   WPI_TalonSRX talonBR = new WPI_TalonSRX(3);
@@ -230,8 +231,8 @@ public class Robot extends TimedRobot
     SmartDashboard.putNumber("XDisp", ahrs.getDisplacementX());
     SmartDashboard.putNumber("YDisp", ahrs.getDisplacementY());
 
-    USSLout = (int) (sensorL.getAverageVoltage() * 147);
-    USSRout = (int) (sensorR.getAverageVoltage() * 147);
+    USSLout = (int) (leftUltrasonic.getAverageVoltage() * 147);
+    USSRout = (int) (LeftUltrasonic.getAverageVoltage() * 147);
     SmartDashboard.putNumber("Ultrasonic L", USSLout);
     SmartDashboard.putNumber("Ultrasonic R", USSRout);
 
@@ -446,6 +447,7 @@ public class Robot extends TimedRobot
     if (operatorJoy.getRawAxis(0) > 0.2 || operatorJoy.getRawAxis(1) > 0.2 || operatorJoy.getRawAxis(2) > 0.2)
     {
       liftMotorSafe(operatorJoy.getRawAxis(0));
+      rotateWristSafe(operatorJoy.getRawAxis(2));
     }
     else
     {
@@ -781,17 +783,35 @@ public class Robot extends TimedRobot
 
   public void liftMotorSafe(double speed)
   {
-    if (liftMotor.getSelectedSensorPosition() == 0 && speed > 0)
+    //The limits will need to be changed
+    if (liftMotor.getSelectedSensorPosition() == 0 && speed > 0) //Upper limit
     {
       liftMotor.set(ControlMode.PercentOutput, 0);
     }
-    else if(liftLimitSwitch == true && speed < 0)
+    else if(liftLimitSwitch == true && speed < 0) //Lower limit
     {
       liftMotor.set(ControlMode.PercentOutput, 0);
     }
-    else
+    else // No limits hit
     {
       liftMotor.set(ControlMode.PercentOutput, speed);
+    }
+  }
+
+  public void rotateWristSafe(double speed)
+  {
+    // Limits that will need to be changed
+    if (wristMotor.getSelectedSensorPosition() == 0 && speed > 0) //Upper Limit
+    {
+      wristMotor.set(ControlMode.PercentOutput, 0);
+    }
+    else if(wristLimitSwitch == true && speed < 0) //Lower Limit
+    {
+      wristMotor.set(ControlMode.PercentOutput, 0);
+    }
+    else //No limits hit
+    {
+      wristMotor.set(ControlMode.PercentOutput, speed);
     }
   }
 }
