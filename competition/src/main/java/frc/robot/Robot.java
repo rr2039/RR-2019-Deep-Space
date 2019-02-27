@@ -765,7 +765,7 @@ public class Robot extends TimedRobot
     {
       error += 360;
     }
-    mecdrive.driveCartesian(driveXAxis * slowmodifer, -driveYAxis * slowmodifer, (0.2 + error*kp) * slowmodifer, error);
+    mecdrive.driveCartesian(driveXAxis * slowmodifer, -driveYAxis * slowmodifer, -error*kp * slowmodifer, error);
   }
 
   public void driveCenter()
