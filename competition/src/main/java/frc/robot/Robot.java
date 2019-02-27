@@ -61,6 +61,8 @@ public class Robot extends TimedRobot
   boolean lineup;
   boolean gyromove;
   boolean center = false;
+  boolean centerLeft = false;
+  boolean centerRight = false;
   private double centerStrafeSpeed = 0.7;
   private double centerReverseSpeed = 0.4;
   private double centerReverseSpeed2 = 0.38;
@@ -151,6 +153,45 @@ public class Robot extends TimedRobot
   boolean clear = false;
 
   Joystick joy2 = new Joystick(1);
+
+  //Controls
+  boolean joy1buttonA = false;
+  boolean joy1buttonAPressed = false;
+  boolean joy1buttonB = false;
+  boolean joy1buttonBPressed = false;
+  boolean joy1buttonX = false;
+  boolean joy1buttonXPressed = false;
+  boolean joy1buttonY = false;
+  boolean joy1buttonYPressed = false;
+  boolean joy1buttonLeftBumper = false;
+  boolean joy1buttonLeftBumperPressed = false;
+  boolean joy1buttonRightBumper = false;
+  boolean joy1buttonRightBumperPressed = false;
+  double joy1AxisLeftStickX = 0;
+  double joy1AxisLeftStickY = 0;
+  double joy1AxisLeftTrigger = 0;
+  double joy1AxisRightTrigger = 0;
+  double joy1AxisRightStickX = 0;
+  double joy1AxisRighttStickY = 0;
+
+  boolean joy2buttonA = false;
+  boolean joy2buttonAPressed = false;
+  boolean joy2buttonB = false;
+  boolean joy2buttonBPressed = false;
+  boolean joy2buttonX = false;
+  boolean joy2buttonXPressed = false;
+  boolean joy2buttonY = false;
+  boolean joy2buttonYPressed = false;
+  boolean joy2buttonLeftBumper = false;
+  boolean joy2buttonLeftBumperPressed = false;
+  boolean joy2buttonRightBumper = false;
+  boolean joy2buttonRightBumperPressed = false;
+  double joy2AxisLeftStickX = 0;
+  double joy2AxisLeftStickY = 0;
+  double joy2AxisLeftTrigger = 0;
+  double joy2AxisRightTrigger = 0;
+  double joy2AxisRightStickX = 0;
+  double joy2AxisRighttStickY = 0;
 
 /* Color Sensor API Variables */
   final int CMD = 0x80;
@@ -259,6 +300,19 @@ public class Robot extends TimedRobot
   @Override
   public void robotPeriodic()
   {
+
+    
+
+    /*center = joy2.getRawButton(5);
+    slowdown = joy1.getRawButton(1);
+    lineup = joy1.getRawButton(2);
+    gyromove = joy1.getRawButton(3);
+    liftMotor.set(joy2.getRawAxis(1));
+    wristMotor.set(joy2.getRawAxis(5));*/
+
+
+
+
     if (joy2.getRawButton(1) == true)
     {
       climbL.set(-1.0);
@@ -302,12 +356,6 @@ public class Robot extends TimedRobot
     }
     
     SmartDashboard.putNumber("alphavalue", alpha);
-    center = joy2.getRawButton(5);
-    //slowdown = joy1.getRawButton(1);
-    lineup = joy1.getRawButton(2);
-    gyromove = joy1.getRawButton(3);
-    liftMotor.set(joy2.getRawAxis(1));
-    wristMotor.set(joy2.getRawAxis(5));
 
     ZRotation = ahrs.getAngle();
 
@@ -336,6 +384,7 @@ public class Robot extends TimedRobot
 
     /* Deadzone Logic */
     //Potentially replace with setDeadBand()
+    //Potentially causes problems when we do not need deadband
     mecdrive.setDeadband(0.2);
    /* if (joy2.getRawAxis(0) > deadzone || joy2.getRawAxis(0) < -deadzone)
     {
@@ -397,6 +446,46 @@ public class Robot extends TimedRobot
   {
     SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
     SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
+
+    //These have to be done here; otherwise, some "pressed" methods will reset in robotPeriodic before a new teleop loop.
+    joy1buttonA = joy1.getRawButton(1);
+    joy1buttonAPressed = joy1.getRawButtonPressed(1);
+    joy1buttonB = joy1.getRawButton(2);
+    joy1buttonBPressed = joy1.getRawButtonPressed(2);
+    joy1buttonX = joy1.getRawButton(3);
+    joy1buttonXPressed = joy1.getRawButtonPressed(3);
+    joy1buttonY = joy1.getRawButton(4);
+    joy1buttonYPressed = joy1.getRawButtonPressed(4);
+    joy1buttonLeftBumper = joy1.getRawButton(5);
+    joy1buttonLeftBumperPressed = joy1.getRawButtonPressed(5);
+    joy1buttonRightBumper = joy1.getRawButton(6);
+    joy1buttonRightBumperPressed = joy1.getRawButtonPressed(6);
+    joy1AxisLeftStickX = joy1.getRawAxis(0);
+    joy1AxisLeftStickY = joy1.getRawAxis(1);
+    joy1AxisLeftTrigger = joy1.getRawAxis(2);
+    joy1AxisRightTrigger = joy1.getRawAxis(3);
+    joy1AxisRightStickX = joy1.getRawAxis(4);
+    joy1AxisRighttStickY = joy1.getRawAxis(5); 
+
+    joy2buttonA = joy2.getRawButton(1);
+    joy2buttonAPressed = joy2.getRawButtonPressed(1);
+    joy2buttonB = joy2.getRawButton(2);
+    joy2buttonBPressed = joy2.getRawButtonPressed(2);
+    joy2buttonX = joy2.getRawButton(3);
+    joy2buttonXPressed = joy2.getRawButtonPressed(3);
+    joy2buttonY = joy2.getRawButton(4);
+    joy2buttonYPressed = joy2.getRawButtonPressed(4);
+    joy2buttonLeftBumper = joy2.getRawButton(5);
+    joy2buttonLeftBumperPressed = joy2.getRawButtonPressed(5);
+    joy2buttonRightBumper = joy2.getRawButton(6);
+    joy2buttonRightBumperPressed = joy2.getRawButtonPressed(6);
+    joy2AxisLeftStickX = joy2.getRawAxis(0);
+    joy2AxisLeftStickY = joy2.getRawAxis(1);
+    joy2AxisLeftTrigger = joy2.getRawAxis(2);
+    joy2AxisRightTrigger = joy2.getRawAxis(3);
+    joy2AxisRightStickX = joy2.getRawAxis(4);
+    joy2AxisRighttStickY = joy2.getRawAxis(5); 
+
     /* Pnumatics Logic */
     /* if(joy2.getRawButton(1))
     {
@@ -418,7 +507,7 @@ public class Robot extends TimedRobot
      //drive state switcher
      if (driveState.equals("center"))
      {
-       if (!center || centerState.equals("stop"))
+       if ((centerDirection.equals("left") && !joy1buttonX) || (centerDirection.equals("right") && !joy1buttonB) || centerState.equals("stop"))
        {
          tempXAxis = 0;
          tempYAxis = 0;
@@ -431,7 +520,7 @@ public class Robot extends TimedRobot
      }
      else if (driveState.equals("lineup"))
      {
-       if (!lineup || lineupState.equals("stop"))
+       if (!joy1buttonY || lineupState.equals("stop"))
        {
          tempXAxis = 0;
          tempYAxis = 0;
@@ -444,24 +533,24 @@ public class Robot extends TimedRobot
      //no exit conditions and operations
     else
     {
-      if (joy1.getRawButtonPressed(3))//X
+      if (joy1buttonX)//X
       {
         driveState = "center";
         centerDirection = "left";
       }
-      else if (joy1.getRawButtonPressed(2))//B
+      else if (joy1buttonB)//B
       {
         driveState = "center";
         centerDirection = "right";
       }
-      else if (joy1.getRawButtonPressed(4))//Y
+      else if (joy1buttonY)//Y
       {
         driveState = "lineup";
       }
       /*
       placeholders
       */
-      else if (joy1.getRawButtonPressed(8))//A, placeholder for potential touch screen control
+      else if (joy1buttonA)//A, placeholder for potential touch screen control
       {
         driveState = "fixedOrientation";
         gyroDirection = 1;//back right rocket
@@ -593,24 +682,28 @@ public class Robot extends TimedRobot
         {
           wristMotor.set(ControlMode.PercentOutput, 0);
         }
+        break;
       }
       case "hatchPickupPosition":
       {
         // Position for hatching and picking up from loading station
         liftMotor.set(ControlMode.Position, liftHatchingPosition);
         wristMotor.set(ControlMode.Position, wristHatchingPosition);
+        break;
       }
       case "hatchPickupFloorPosition":
       {
         // Position for picking hatches up from the floor
         liftMotor.set(ControlMode.Position, liftHatchingFloorPosition);
         wristMotor.set(ControlMode.Position, wristHatchingFloorPosition);
+        break;
       }
       case "cargoPickupPosition":
       {
         // Position for cargo
         liftMotor.set(ControlMode.Position, liftCargoPickupPosition);
         wristMotor.set(ControlMode.Position, wristCargoPickupPosition);
+        break;
       }
       //Elevator states
       case "hatchLevel1":
@@ -618,36 +711,42 @@ public class Robot extends TimedRobot
         //move until level 1 (1 ft. 7 in.)
         liftMotor.set(ControlMode.Position, liftHatchLevel1_Position);
         wristMotor.set(ControlMode.Position, wristHatchLevel1_Position);
+        break;
       }
       case "hatchLevel2":
       {
         //move until level 2 (3 ft. 11 in.)
         liftMotor.set(ControlMode.Position, liftHatchLevel2_Position);
         wristMotor.set(ControlMode.Position, wristHatchLevel2_Position);
+        break;
       }
       case "hatchLevel3":
       {
         //move until next level 3 (5 ft. 15 in.)
         liftMotor.set(ControlMode.Position, liftHatchLevel3_Position);
         wristMotor.set(ControlMode.Position, wristHatchLevel3_Position);
+        break;
       }
       case "cargoLevel1":
       {
         //move until level 1 (2 ft. 3.5 in.)
         liftMotor.set(ControlMode.Position, liftCargoLevel1_Position);
         wristMotor.set(ControlMode.Position, wristCargoLevel1_Position);
+        break;
       }
       case "cargoLevel2":
       {
         //move until level 2 (4 ft. 7.5 in)
         liftMotor.set(ControlMode.Position, liftCargoLevel2_Position);
         wristMotor.set(ControlMode.Position, wristCargoLevel2_Position);
+        break;
       }
       case "cargoLevel3":
       {
         //move until next level 3 (6 ft. 11.5 in)
         liftMotor.set(ControlMode.Position, liftCargoLevel3_Position);
         wristMotor.set(ControlMode.Position, wristCargoLevel3_Position);
+        break;
       }
     }
   }
@@ -894,6 +993,13 @@ public class Robot extends TimedRobot
           centerState = "drive_in";
           lineupState = "start";
         }
+
+        else
+        {
+          driveLineup();
+        }
+
+        break;
       }
 
       //lineup using ultrasonic sensors
@@ -901,14 +1007,20 @@ public class Robot extends TimedRobot
       {
         if (USSLout <= 11)
         {
-          mecdrive.driveCartesian(0,0,0);
+          tempXAxis = 0;
+          tempYAxis = 0;
+          tempRotation = 0;
           centerState = "stop";
         }
 
         else
         {
-          mecdrive.driveCartesian(0,0.4,0);
+          tempXAxis = 0;
+          tempYAxis = 0.4;
+          tempRotation = 0;
         }
+
+        break;
       }
     }//end of switch
 
