@@ -168,6 +168,10 @@ public class Robot extends TimedRobot
   boolean joy1buttonLeftBumperPressed = false;
   boolean joy1buttonRightBumper = false;
   boolean joy1buttonRightBumperPressed = false;
+  boolean joy1buttonBack = false;
+  boolean joy1buttonBackPressed = false;
+  boolean joy1buttonStart = false;
+  boolean joy1buttonStartPressed = false;
   double joy1AxisLeftStickX = 0;
   double joy1AxisLeftStickY = 0;
   double joy1AxisLeftTrigger = 0;
@@ -187,6 +191,10 @@ public class Robot extends TimedRobot
   boolean joy2buttonLeftBumperPressed = false;
   boolean joy2buttonRightBumper = false;
   boolean joy2buttonRightBumperPressed = false;
+  boolean joy2buttonBack = false;
+  boolean joy2buttonBackPressed = false;
+  boolean joy2buttonStart = false;
+  boolean joy2buttonStartPressed = false;
   double joy2AxisLeftStickX = 0;
   double joy2AxisLeftStickY = 0;
   double joy2AxisLeftTrigger = 0;
@@ -319,14 +327,6 @@ public class Robot extends TimedRobot
 
 
 
-
-    
-    
-    
-
-
-    
-
     /* Deadzone Logic */
     //Potentially replace with setDeadBand()
     //Potentially causes problems when we do not need deadband
@@ -427,6 +427,10 @@ public class Robot extends TimedRobot
     joy1buttonLeftBumperPressed = joy1.getRawButtonPressed(5);
     joy1buttonRightBumper = joy1.getRawButton(6);
     joy1buttonRightBumperPressed = joy1.getRawButtonPressed(6);
+    joy1buttonBack = joy1.getRawButton(7);
+    joy1buttonBackPressed = joy1.getRawButtonPressed(7);
+    joy1buttonStart = joy1.getRawButton(8);
+    joy1buttonStartPressed = joy1.getRawButtonPressed(8);
     joy1AxisLeftStickX = joy1.getRawAxis(0);
     joy1AxisLeftStickY = joy1.getRawAxis(1);
     joy1AxisLeftTrigger = joy1.getRawAxis(2);
@@ -446,6 +450,10 @@ public class Robot extends TimedRobot
     joy2buttonLeftBumperPressed = joy2.getRawButtonPressed(5);
     joy2buttonRightBumper = joy2.getRawButton(6);
     joy2buttonRightBumperPressed = joy2.getRawButtonPressed(6);
+    joy2buttonBack = joy2.getRawButton(7);
+    joy2buttonBackPressed = joy2.getRawButtonPressed(7);
+    joy2buttonStart = joy2.getRawButton(8);
+    joy2buttonStartPressed = joy2.getRawButtonPressed(8);
     joy2AxisLeftStickX = joy2.getRawAxis(0);
     joy2AxisLeftStickY = joy2.getRawAxis(1);
     joy2AxisLeftTrigger = joy2.getRawAxis(2);
@@ -592,7 +600,7 @@ public class Robot extends TimedRobot
     }//end of switch
 
     //Operator State Switcher
-    if (joy1.getRawAxis(0) > 0.2 | joy1.getRawAxis(1) > 0.2 | joy1.getRawAxis(2) > 0.2 | joy1.getRawAxis(3) > 0.2)
+    if (joy2AxisLeftStickX > 0.2 | joy2AxisLeftStickY > 0.2 | joy2AxisLeftTrigger > 0.2 | joy2AxisRightTrigger > 0.2)
     {
       operatorState = "manual";
     }
@@ -700,9 +708,9 @@ public class Robot extends TimedRobot
       slowmodifer = 1.0;
     }
 
-    driveXAxis = joy1.getRawAxis(0);
-    driveYAxis = joy1.getRawAxis(1);
-    driveRotation = joy1.getRawAxis(4);
+    driveXAxis = joy1AxisLeftStickX;
+    driveYAxis = joy1AxisLeftStickY;
+    driveRotation = joy1AxisRightStickX;
     mecdrive.driveCartesian(driveXAxis * slowmodifer, -driveYAxis * slowmodifer, driveRotation * slowmodifer);
   }
 
@@ -718,8 +726,8 @@ public class Robot extends TimedRobot
       slowmodifer = 1.0;
     }
 
-    driveXAxis = joy1.getRawAxis(0);
-    driveYAxis = joy1.getRawAxis(1);
+    driveXAxis = joy1AxisLeftStickX;
+    driveYAxis = joy1AxisLeftStickY;
     double error = 0;
     double angle = 0;
     double kp = 0.03;
@@ -966,30 +974,30 @@ public class Robot extends TimedRobot
 
   public void operatorManual()
   {
-    if (joy2.getRawButton(1) == true)
+    if (joy2buttonA == true)
     {
       climbL.set(-1.0);
       climbR.set(-1.0);
     }
-    else if (joy2.getRawButton(4) == true)
+    else if (joy2buttonY == true)
     {
       climbL.set(1.0);
       climbR.set(1.0);
     }
-    else if (joy2.getRawButton(2) == true)
+    else if (joy2buttonB == true)
     {
-      WclimbL.set(joy2.getRawAxis(2));
-      WclimbR.set(joy2.getRawAxis(3));
+      WclimbL.set(joy2AxisLeftTrigger);
+      WclimbR.set(joy2AxisRightTrigger);
     }
-    else if (joy2.getRawButton(8) == true)
+    else if (joy2buttonStart == true)
     {
-      climbL.set(joy2.getRawAxis(2));
-      climbR.set(joy2.getRawAxis(3));
+      climbL.set(joy2AxisLeftTrigger);
+      climbR.set(joy2AxisRightTrigger);
     }
-    else if (joy2.getRawButton(7) == true)
+    else if (joy2buttonBack == true)
     {
-      climbL.set(- joy2.getRawAxis(2));
-      climbR.set(- joy2.getRawAxis(3));
+      climbL.set(- joy2AxisLeftTrigger);
+      climbR.set(- joy2AxisRightTrigger);
     }
     else
     {
@@ -999,7 +1007,7 @@ public class Robot extends TimedRobot
       WclimbR.set(0);
     }
   
-    if (joy2.getRawButton(3))
+    if (joy2buttonX)
     {
       ejectorSolenoid.set(true);
     }
@@ -1011,7 +1019,7 @@ public class Robot extends TimedRobot
     //This may need to change to a different encoder position
     if ((liftMotor.getSelectedSensorPosition() == liftHatchLevel3_Position | liftLimitSwitch == false) && disableSafetiesButton == true)
     {
-      liftMotor.set(ControlMode.PercentOutput, joy1.getRawAxis(0));
+      liftMotor.set(ControlMode.PercentOutput, joy2AxisLeftStickX);
     }
     else
     {
@@ -1019,7 +1027,7 @@ public class Robot extends TimedRobot
     }
     if (wristLimitSwitch == false | wristMotor.getSelectedSensorPosition() == wristHatchingFloorPosition)
     {
-      wristMotor.set(ControlMode.PercentOutput, joy1.getRawAxis(1));
+      wristMotor.set(ControlMode.PercentOutput, joy2AxisLeftStickY);
     }
     else
     {
