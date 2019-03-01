@@ -79,10 +79,11 @@ public class Robot extends TimedRobot
 
   /* Robot States */
   private String driveState = "normal";
-  private String operatorState = "idle";
+  private String operatorState = "manual";
+  private String hatchCargoPosition = "startingPosition";
   private String centerState = "start";
-  private String lineupState = "start";
   private String centerDirection = "left";
+  private String lineupState = "start";
   private int gyroDirection = 4;//facing front
 
   /* Operator Buttons */
@@ -219,7 +220,7 @@ public class Robot extends TimedRobot
 
 // Everything Else
   AHRS ahrs = new AHRS(SerialPort.Port.kUSB1);
-  double ZRotation = 0;
+  double heading = 0;
 
   AnalogInput sensorL = new AnalogInput(0);
   AnalogInput sensorR = new AnalogInput(1);
@@ -286,6 +287,12 @@ public class Robot extends TimedRobot
     liftMotor.configClosedLoopPeriod(0, 1, 30);
     liftMotor.configClearPositionOnQuadIdx(clear, 20);
 
+    /* Drivetrain Ramping */
+    talonFR.configOpenloopRamp(0.25, 20);
+    talonFL.configOpenloopRamp(0.25, 20);
+    talonBL.configOpenloopRamp(0.25, 20);
+    talonBR.configOpenloopRamp(0.25, 20);
+
    //NavX
    try
    {
@@ -313,79 +320,17 @@ public class Robot extends TimedRobot
 
 
 
-    if (joy2.getRawButton(1) == true)
-    {
-      climbL.set(-1.0);
-      climbR.set(-1.0);
-    }
-    else if (joy2.getRawButton(4) == true)
-    {
-      climbL.set(1.0);
-      climbR.set(1.0);
-    }
-    else if (joy2.getRawButton(2) == true)
-    {
-      WclimbL.set(joy2.getRawAxis(2));
-      WclimbR.set(joy2.getRawAxis(3));
-    }
-    else if (joy2.getRawButton(8) == true)
-    {
-      climbL.set(joy2.getRawAxis(2));
-      climbR.set(joy2.getRawAxis(3));
-    }
-    else if (joy2.getRawButton(7) == true)
-    {
-      climbL.set(- joy2.getRawAxis(2));
-      climbR.set(- joy2.getRawAxis(3));
-    }
-    else
-    {
-      climbL.set(0);
-      climbR.set(0);
-      WclimbL.set(0);
-      WclimbR.set(0);
-    }
-  
-    if (joy2.getRawButton(3))
-    {
-      ejectorSolenoid.set(true);
-    }
-    else
-    {
-      ejectorSolenoid.set(false);
-    }
     
-    SmartDashboard.putNumber("alphavalue", alpha);
-
-    ZRotation = ahrs.getAngle();
-
-    SmartDashboard.putBoolean("slowmode", slowdown);
-    SmartDashboard.putBoolean("lineup", lineup);
-
-    SmartDashboard.putNumber("Yaw", ZRotation);
-    SmartDashboard.putBoolean("is connected", ahrs.isConnected());
-    SmartDashboard.putNumber("XDisp", ahrs.getDisplacementX());
-    SmartDashboard.putNumber("YDisp", ahrs.getDisplacementY());
-
-    USSLout = (int) (sensorL.getAverageVoltage() * 147);
-    USSRout = (int) (sensorR.getAverageVoltage() * 147);
-    SmartDashboard.putNumber("Ultrasonic L", USSLout);
-    SmartDashboard.putNumber("Ultrasonic R", USSRout);
-
-    SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
-    SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
+    
+    
 
 
-    /* Drivetrain Ramping */
-    talonFR.configOpenloopRamp(0.25, 20);
-    talonFL.configOpenloopRamp(0.25, 20);
-    talonBL.configOpenloopRamp(0.25, 20);
-    talonBR.configOpenloopRamp(0.25, 20);
+    
 
     /* Deadzone Logic */
     //Potentially replace with setDeadBand()
     //Potentially causes problems when we do not need deadband
-    mecdrive.setDeadband(0.2);
+    //mecdrive.setDeadband(0.2);
    /* if (joy2.getRawAxis(0) > deadzone || joy2.getRawAxis(0) < -deadzone)
     {
       xaxis = joy2.getRawAxis(0);
@@ -416,7 +361,7 @@ public class Robot extends TimedRobot
     velocity = motor.getSelectedSensorVelocity();
     */
 
-    alpha = readAlphaIntensity();
+    
   }
   // ----------------------------------------------------------------------------------------
   @Override
@@ -444,8 +389,30 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic()
   {
+    //Smart dashboard stuff
     SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
     SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
+    SmartDashboard.putNumber("alphavalue", alpha);
+
+    SmartDashboard.putBoolean("slowmode", slowdown);
+    SmartDashboard.putBoolean("lineup", lineup);
+
+    SmartDashboard.putNumber("Yaw", heading);
+    SmartDashboard.putBoolean("is connected", ahrs.isConnected());
+    SmartDashboard.putNumber("XDisp", ahrs.getDisplacementX());
+    SmartDashboard.putNumber("YDisp", ahrs.getDisplacementY());
+    
+    SmartDashboard.putNumber("Ultrasonic L", USSLout);
+    SmartDashboard.putNumber("Ultrasonic R", USSRout);
+
+    SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
+    SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
+
+    //sensors
+    heading = ahrs.getAngle();
+    USSLout = (int) (sensorL.getAverageVoltage() * 147);
+    USSRout = (int) (sensorR.getAverageVoltage() * 147);
+    alpha = readAlphaIntensity();
 
     //These have to be done here; otherwise, some "pressed" methods will reset in robotPeriodic before a new teleop loop.
     joy1buttonA = joy1.getRawButton(1);
@@ -485,6 +452,7 @@ public class Robot extends TimedRobot
     joy2AxisRightTrigger = joy2.getRawAxis(3);
     joy2AxisRightStickX = joy2.getRawAxis(4);
     joy2AxisRighttStickY = joy2.getRawAxis(5); 
+
 
     /* Pnumatics Logic */
     /* if(joy2.getRawButton(1))
@@ -592,44 +560,6 @@ public class Robot extends TimedRobot
       }
     }
 
-    //Operator State Switcher
-    if (joy1.getRawAxis(0) > 0.2 | joy1.getRawAxis(1) > 0.2 | joy1.getRawAxis(2) > 0.2 | joy1.getRawAxis(3) > 0.2)
-    {
-      operatorState = "manual";
-    }
-    else if (hatchLevel1Button)
-    {
-      operatorState = "hatchLevel1";
-    }
-    else if (hatchLevel2Button)
-    {
-      operatorState = "hatchLevel2";
-    }
-    else if (hatchLevel3Button)
-    {
-      operatorState = "hatchLevel3";
-    }
-    else if (cargoLevel1Button)
-    {
-      operatorState = "cargoLevel1";
-    }
-    else if (startingPositionButton)
-    {
-      operatorState = "startingPosition";
-    }
-    else if (hatchingPositionButton)
-    {
-      operatorState = "hatchPickupPosition";
-    }
-    else if (hatchFloorPositionButton)
-    {
-      operatorState = "hatchingFloorPickupPosition";
-    }
-    else if (cargoPositionButton)
-    {
-      operatorState = "cargoPickupPosition";
-    }
-
     switch (driveState)
     {
       //normal drive state
@@ -661,91 +591,63 @@ public class Robot extends TimedRobot
       }
     }//end of switch
 
+    //Operator State Switcher
+    if (joy1.getRawAxis(0) > 0.2 | joy1.getRawAxis(1) > 0.2 | joy1.getRawAxis(2) > 0.2 | joy1.getRawAxis(3) > 0.2)
+    {
+      operatorState = "manual";
+    }
+    else if (hatchLevel1Button)
+    {
+      operatorState = "auto";
+      hatchCargoPosition = "hatchLevel1";
+    }
+    else if (hatchLevel2Button)
+    {
+      operatorState = "auto";
+      hatchCargoPosition = "hatchLevel2";
+    }
+    else if (hatchLevel3Button)
+    {
+      operatorState = "auto";
+      hatchCargoPosition = "hatchLevel3";
+    }
+    else if (cargoLevel1Button)
+    {
+      operatorState = "auto";
+      hatchCargoPosition = "cargoLevel1";
+    }
+    else if (startingPositionButton)
+    {
+      operatorState = "auto";
+      hatchCargoPosition = "startingPosition";
+    }
+    else if (hatchingPositionButton)
+    {
+      operatorState = "auto";
+      hatchCargoPosition = "ahtchPickupPosition";
+    }
+    else if (hatchFloorPositionButton)
+    {
+      operatorState = "auto";
+      hatchCargoPosition = "hatchingFloorPickupPosition";
+    }
+    else if (cargoPositionButton)
+    {
+      operatorState = "auto";
+      hatchCargoPosition = "cargoPickupPosition";
+    }
+
     switch (operatorState)
     {
       case "manual":
       {
-        //This may need to change to a different encoder position
-        if ((liftMotor.getSelectedSensorPosition() == liftHatchLevel3_Position | liftLimitSwitch == false) && disableSafetiesButton == true)
-        {
-          liftMotor.set(ControlMode.PercentOutput, joy1.getRawAxis(0));
-        }
-        else
-        {
-          liftMotor.set(ControlMode.PercentOutput, 0);
-        }
-        if (wristLimitSwitch == false | wristMotor.getSelectedSensorPosition() == wristHatchingFloorPosition)
-        {
-          wristMotor.set(ControlMode.PercentOutput, joy1.getRawAxis(1));
-        }
-        else
-        {
-          wristMotor.set(ControlMode.PercentOutput, 0);
-        }
+        operatorManual();
         break;
       }
-      case "hatchPickupPosition":
+      
+      case "auto":
       {
-        // Position for hatching and picking up from loading station
-        liftMotor.set(ControlMode.Position, liftHatchingPosition);
-        wristMotor.set(ControlMode.Position, wristHatchingPosition);
-        break;
-      }
-      case "hatchPickupFloorPosition":
-      {
-        // Position for picking hatches up from the floor
-        liftMotor.set(ControlMode.Position, liftHatchingFloorPosition);
-        wristMotor.set(ControlMode.Position, wristHatchingFloorPosition);
-        break;
-      }
-      case "cargoPickupPosition":
-      {
-        // Position for cargo
-        liftMotor.set(ControlMode.Position, liftCargoPickupPosition);
-        wristMotor.set(ControlMode.Position, wristCargoPickupPosition);
-        break;
-      }
-      //Elevator states
-      case "hatchLevel1":
-      {
-        //move until level 1 (1 ft. 7 in.)
-        liftMotor.set(ControlMode.Position, liftHatchLevel1_Position);
-        wristMotor.set(ControlMode.Position, wristHatchLevel1_Position);
-        break;
-      }
-      case "hatchLevel2":
-      {
-        //move until level 2 (3 ft. 11 in.)
-        liftMotor.set(ControlMode.Position, liftHatchLevel2_Position);
-        wristMotor.set(ControlMode.Position, wristHatchLevel2_Position);
-        break;
-      }
-      case "hatchLevel3":
-      {
-        //move until next level 3 (5 ft. 15 in.)
-        liftMotor.set(ControlMode.Position, liftHatchLevel3_Position);
-        wristMotor.set(ControlMode.Position, wristHatchLevel3_Position);
-        break;
-      }
-      case "cargoLevel1":
-      {
-        //move until level 1 (2 ft. 3.5 in.)
-        liftMotor.set(ControlMode.Position, liftCargoLevel1_Position);
-        wristMotor.set(ControlMode.Position, wristCargoLevel1_Position);
-        break;
-      }
-      case "cargoLevel2":
-      {
-        //move until level 2 (4 ft. 7.5 in)
-        liftMotor.set(ControlMode.Position, liftCargoLevel2_Position);
-        wristMotor.set(ControlMode.Position, wristCargoLevel2_Position);
-        break;
-      }
-      case "cargoLevel3":
-      {
-        //move until next level 3 (6 ft. 11.5 in)
-        liftMotor.set(ControlMode.Position, liftCargoLevel3_Position);
-        wristMotor.set(ControlMode.Position, wristCargoLevel3_Position);
+        operatorAuto();
         break;
       }
     }
@@ -820,7 +722,6 @@ public class Robot extends TimedRobot
     driveYAxis = joy1.getRawAxis(1);
     double error = 0;
     double angle = 0;
-    double heading = ahrs.getAngle();
     double kp = 0.03;
     if (gyroDirection == 1)
     {
@@ -1062,4 +963,138 @@ public class Robot extends TimedRobot
 
     mecdrive.driveCartesian(tempXAxis,tempYAxis,tempRotation);
   }//end of driveLineup()
+
+  public void operatorManual()
+  {
+    if (joy2.getRawButton(1) == true)
+    {
+      climbL.set(-1.0);
+      climbR.set(-1.0);
+    }
+    else if (joy2.getRawButton(4) == true)
+    {
+      climbL.set(1.0);
+      climbR.set(1.0);
+    }
+    else if (joy2.getRawButton(2) == true)
+    {
+      WclimbL.set(joy2.getRawAxis(2));
+      WclimbR.set(joy2.getRawAxis(3));
+    }
+    else if (joy2.getRawButton(8) == true)
+    {
+      climbL.set(joy2.getRawAxis(2));
+      climbR.set(joy2.getRawAxis(3));
+    }
+    else if (joy2.getRawButton(7) == true)
+    {
+      climbL.set(- joy2.getRawAxis(2));
+      climbR.set(- joy2.getRawAxis(3));
+    }
+    else
+    {
+      climbL.set(0);
+      climbR.set(0);
+      WclimbL.set(0);
+      WclimbR.set(0);
+    }
+  
+    if (joy2.getRawButton(3))
+    {
+      ejectorSolenoid.set(true);
+    }
+    else
+    {
+      ejectorSolenoid.set(false);
+    }
+
+    //This may need to change to a different encoder position
+    if ((liftMotor.getSelectedSensorPosition() == liftHatchLevel3_Position | liftLimitSwitch == false) && disableSafetiesButton == true)
+    {
+      liftMotor.set(ControlMode.PercentOutput, joy1.getRawAxis(0));
+    }
+    else
+    {
+      liftMotor.set(ControlMode.PercentOutput, 0);
+    }
+    if (wristLimitSwitch == false | wristMotor.getSelectedSensorPosition() == wristHatchingFloorPosition)
+    {
+      wristMotor.set(ControlMode.PercentOutput, joy1.getRawAxis(1));
+    }
+    else
+    {
+      wristMotor.set(ControlMode.PercentOutput, 0);
+    }
+  }
+
+  public void operatorAuto()
+  {
+    switch (hatchCargoPosition)
+    {
+      case "hatchPickupPosition":
+      {
+        // Position for hatching and picking up from loading station
+        liftMotor.set(ControlMode.Position, liftHatchingPosition);
+        wristMotor.set(ControlMode.Position, wristHatchingPosition);
+        break;
+      }
+      case "hatchPickupFloorPosition":
+      {
+        // Position for picking hatches up from the floor
+        liftMotor.set(ControlMode.Position, liftHatchingFloorPosition);
+        wristMotor.set(ControlMode.Position, wristHatchingFloorPosition);
+        break;
+      }
+      case "cargoPickupPosition":
+      {
+        // Position for cargo
+        liftMotor.set(ControlMode.Position, liftCargoPickupPosition);
+        wristMotor.set(ControlMode.Position, wristCargoPickupPosition);
+        break;
+      }
+      //Elevator states
+      case "hatchLevel1":
+      {
+        //move until level 1 (1 ft. 7 in.)
+        liftMotor.set(ControlMode.Position, liftHatchLevel1_Position);
+        wristMotor.set(ControlMode.Position, wristHatchLevel1_Position);
+        break;
+      }
+      case "hatchLevel2":
+      {
+        //move until level 2 (3 ft. 11 in.)
+        liftMotor.set(ControlMode.Position, liftHatchLevel2_Position);
+        wristMotor.set(ControlMode.Position, wristHatchLevel2_Position);
+        break;
+      }
+      case "hatchLevel3":
+      {
+        //move until next level 3 (5 ft. 15 in.)
+        liftMotor.set(ControlMode.Position, liftHatchLevel3_Position);
+        wristMotor.set(ControlMode.Position, wristHatchLevel3_Position);
+        break;
+      }
+      case "cargoLevel1":
+      {
+        //move until level 1 (2 ft. 3.5 in.)
+        liftMotor.set(ControlMode.Position, liftCargoLevel1_Position);
+        wristMotor.set(ControlMode.Position, wristCargoLevel1_Position);
+        break;
+      }
+      case "cargoLevel2":
+      {
+        //move until level 2 (4 ft. 7.5 in)
+        liftMotor.set(ControlMode.Position, liftCargoLevel2_Position);
+        wristMotor.set(ControlMode.Position, wristCargoLevel2_Position);
+        break;
+      }
+      case "cargoLevel3":
+      {
+        //move until next level 3 (6 ft. 11.5 in)
+        liftMotor.set(ControlMode.Position, liftCargoLevel3_Position);
+        wristMotor.set(ControlMode.Position, wristCargoLevel3_Position);
+        break;
+      }
+    }
+  }
 }
