@@ -1023,6 +1023,11 @@ public class Robot extends TimedRobot
     }
   }
 
+  public void liftMotor_to_PositionSafe(double encoderPosition)
+  {
+
+  }
+
   public void rotateWristSafe(double speed)
   {
     // Limits that will need to be changed
