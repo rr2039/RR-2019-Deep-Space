@@ -116,51 +116,51 @@ public class Robot extends TimedRobot
   Joystick operatorJoy = new Joystick(1);
 
   //Controls
-  boolean joy1buttonA = false;
-  boolean joy1buttonAPressed = false;
-  boolean joy1buttonB = false;
-  boolean joy1buttonBPressed = false;
-  boolean joy1buttonX = false;
-  boolean joy1buttonXPressed = false;
-  boolean joy1buttonY = false;
-  boolean joy1buttonYPressed = false;
-  boolean joy1buttonLeftBumper = false;
-  boolean joy1buttonLeftBumperPressed = false;
-  boolean joy1buttonRightBumper = false;
-  boolean joy1buttonRightBumperPressed = false;
-  boolean joy1buttonBack = false;
-  boolean joy1buttonBackPressed = false;
-  boolean joy1buttonStart = false;
-  boolean joy1buttonStartPressed = false;
-  double joy1AxisLeftStickX = 0;
-  double joy1AxisLeftStickY = 0;
-  double joy1AxisLeftTrigger = 0;
-  double joy1AxisRightTrigger = 0;
-  double joy1AxisRightStickX = 0;
-  double joy1AxisRighttStickY = 0;
+  boolean driveJoybuttonA = false;
+  boolean driveJoybuttonAPressed = false;
+  boolean driveJoybuttonB = false;
+  boolean driveJoybuttonBPressed = false;
+  boolean driveJoybuttonX = false;
+  boolean driveJoybuttonXPressed = false;
+  boolean driveJoybuttonY = false;
+  boolean driveJoybuttonYPressed = false;
+  boolean driveJoybuttonLeftBumper = false;
+  boolean driveJoybuttonLeftBumperPressed = false;
+  boolean driveJoybuttonRightBumper = false;
+  boolean driveJoybuttonRightBumperPressed = false;
+  boolean driveJoybuttonBack = false;
+  boolean driveJoybuttonBackPressed = false;
+  boolean driveJoybuttonStart = false;
+  boolean driveJoybuttonStartPressed = false;
+  double driveJoyAxisLeftStickX = 0;
+  double driveJoyAxisLeftStickY = 0;
+  double driveJoyAxisLeftTrigger = 0;
+  double driveJoyAxisRightTrigger = 0;
+  double driveJoyAxisRightStickX = 0;
+  double driveJoyAxisRighttStickY = 0;
 
-  boolean joy2buttonA = false;
-  boolean joy2buttonAPressed = false;
-  boolean joy2buttonB = false;
-  boolean joy2buttonBPressed = false;
-  boolean joy2buttonX = false;
-  boolean joy2buttonXPressed = false;
-  boolean joy2buttonY = false;
-  boolean joy2buttonYPressed = false;
-  boolean joy2buttonLeftBumper = false;
-  boolean joy2buttonLeftBumperPressed = false;
-  boolean joy2buttonRightBumper = false;
-  boolean joy2buttonRightBumperPressed = false;
-  boolean joy2buttonBack = false;
-  boolean joy2buttonBackPressed = false;
-  boolean joy2buttonStart = false;
-  boolean joy2buttonStartPressed = false;
-  double joy2AxisLeftStickX = 0;
-  double joy2AxisLeftStickY = 0;
-  double joy2AxisLeftTrigger = 0;
-  double joy2AxisRightTrigger = 0;
-  double joy2AxisRightStickX = 0;
-  double joy2AxisRighttStickY = 0;
+  boolean operatorJoybuttonA = false;
+  boolean operatorJoybuttonAPressed = false;
+  boolean operatorJoybuttonB = false;
+  boolean operatorJoybuttonBPressed = false;
+  boolean operatorJoybuttonX = false;
+  boolean operatorJoybuttonXPressed = false;
+  boolean operatorJoybuttonY = false;
+  boolean operatorJoybuttonYPressed = false;
+  boolean operatorJoybuttonLeftBumper = false;
+  boolean operatorJoybuttonLeftBumperPressed = false;
+  boolean operatorJoybuttonRightBumper = false;
+  boolean operatorJoybuttonRightBumperPressed = false;
+  boolean operatorJoybuttonBack = false;
+  boolean operatorJoybuttonBackPressed = false;
+  boolean operatorJoybuttonStart = false;
+  boolean operatorJoybuttonStartPressed = false;
+  double operatorJoyAxisLeftStickX = 0;
+  double operatorJoyAxisLeftStickY = 0;
+  double operatorJoyAxisLeftTrigger = 0;
+  double operatorJoyAxisRightTrigger = 0;
+  double operatorJoyAxisRightStickX = 0;
+  double operatorJoyAxisRighttStickY = 0;
 
   /* Constants for the encoder values for required positions */
 
@@ -432,158 +432,158 @@ public class Robot extends TimedRobot
     alpha = readAlphaIntensity();
 
     //These have to be done here; otherwise, some "pressed" methods will reset in robotPeriodic before a new teleop loop.
-    joy1buttonA = driveJoy.getRawButton(1);
-    joy1buttonAPressed = driveJoy.getRawButtonPressed(1);
-    joy1buttonB = driveJoy.getRawButton(2);
-    joy1buttonBPressed = driveJoy.getRawButtonPressed(2);
-    joy1buttonX = driveJoy.getRawButton(3);
-    joy1buttonXPressed = driveJoy.getRawButtonPressed(3);
-    joy1buttonY = driveJoy.getRawButton(4);
-    joy1buttonYPressed = driveJoy.getRawButtonPressed(4);
-    joy1buttonLeftBumper = driveJoy.getRawButton(5);
-    joy1buttonLeftBumperPressed = driveJoy.getRawButtonPressed(5);
-    joy1buttonRightBumper = driveJoy.getRawButton(6);
-    joy1buttonRightBumperPressed = driveJoy.getRawButtonPressed(6);
-    joy1buttonBack = driveJoy.getRawButton(7);
-    joy1buttonBackPressed = driveJoy.getRawButtonPressed(7);
-    joy1buttonStart = driveJoy.getRawButton(8);
-    joy1buttonStartPressed = driveJoy.getRawButtonPressed(8);
-    joy1AxisLeftStickX = driveJoy.getRawAxis(0);
-    joy1AxisLeftStickY = driveJoy.getRawAxis(1);
-    joy1AxisLeftTrigger = driveJoy.getRawAxis(2);
-    joy1AxisRightTrigger = driveJoy.getRawAxis(3);
-    joy1AxisRightStickX = driveJoy.getRawAxis(4);
-    joy1AxisRighttStickY = driveJoy.getRawAxis(5); 
+    driveJoybuttonA = driveJoy.getRawButton(1);
+    driveJoybuttonAPressed = driveJoy.getRawButtonPressed(1);
+    driveJoybuttonB = driveJoy.getRawButton(2);
+    driveJoybuttonBPressed = driveJoy.getRawButtonPressed(2);
+    driveJoybuttonX = driveJoy.getRawButton(3);
+    driveJoybuttonXPressed = driveJoy.getRawButtonPressed(3);
+    driveJoybuttonY = driveJoy.getRawButton(4);
+    driveJoybuttonYPressed = driveJoy.getRawButtonPressed(4);
+    driveJoybuttonLeftBumper = driveJoy.getRawButton(5);
+    driveJoybuttonLeftBumperPressed = driveJoy.getRawButtonPressed(5);
+    driveJoybuttonRightBumper = driveJoy.getRawButton(6);
+    driveJoybuttonRightBumperPressed = driveJoy.getRawButtonPressed(6);
+    driveJoybuttonBack = driveJoy.getRawButton(7);
+    driveJoybuttonBackPressed = driveJoy.getRawButtonPressed(7);
+    driveJoybuttonStart = driveJoy.getRawButton(8);
+    driveJoybuttonStartPressed = driveJoy.getRawButtonPressed(8);
+    driveJoyAxisLeftStickX = driveJoy.getRawAxis(0);
+    driveJoyAxisLeftStickY = driveJoy.getRawAxis(1);
+    driveJoyAxisLeftTrigger = driveJoy.getRawAxis(2);
+    driveJoyAxisRightTrigger = driveJoy.getRawAxis(3);
+    driveJoyAxisRightStickX = driveJoy.getRawAxis(4);
+    driveJoyAxisRighttStickY = driveJoy.getRawAxis(5); 
 
-    joy2buttonA = operatorJoy.getRawButton(1);
-    joy2buttonAPressed = operatorJoy.getRawButtonPressed(1);
-    joy2buttonB = operatorJoy.getRawButton(2);
-    joy2buttonBPressed = operatorJoy.getRawButtonPressed(2);
-    joy2buttonX = operatorJoy.getRawButton(3);
-    joy2buttonXPressed = operatorJoy.getRawButtonPressed(3);
-    joy2buttonY = operatorJoy.getRawButton(4);
-    joy2buttonYPressed = operatorJoy.getRawButtonPressed(4);
-    joy2buttonLeftBumper = operatorJoy.getRawButton(5);
-    joy2buttonLeftBumperPressed = operatorJoy.getRawButtonPressed(5);
-    joy2buttonRightBumper = operatorJoy.getRawButton(6);
-    joy2buttonRightBumperPressed = operatorJoy.getRawButtonPressed(6);
-    joy2buttonBack = operatorJoy.getRawButton(7);
-    joy2buttonBackPressed = operatorJoy.getRawButtonPressed(7);
-    joy2buttonStart = operatorJoy.getRawButton(8);
-    joy2buttonStartPressed = operatorJoy.getRawButtonPressed(8);
-    joy2AxisLeftStickX = operatorJoy.getRawAxis(0);
-    joy2AxisLeftStickY = 
-    joy2AxisLeftTrigger = operatorJoy.getRawAxis(2);
-    joy2AxisRightTrigger = operatorJoy.getRawAxis(3);
-    joy2AxisRightStickX = operatorJoy.getRawAxis(4);
-    joy2AxisRighttStickY = operatorJoy.getRawAxis(5); 
+    operatorJoybuttonA = operatorJoy.getRawButton(1);
+    operatorJoybuttonAPressed = operatorJoy.getRawButtonPressed(1);
+    operatorJoybuttonB = operatorJoy.getRawButton(2);
+    operatorJoybuttonBPressed = operatorJoy.getRawButtonPressed(2);
+    operatorJoybuttonX = operatorJoy.getRawButton(3);
+    operatorJoybuttonXPressed = operatorJoy.getRawButtonPressed(3);
+    operatorJoybuttonY = operatorJoy.getRawButton(4);
+    operatorJoybuttonYPressed = operatorJoy.getRawButtonPressed(4);
+    operatorJoybuttonLeftBumper = operatorJoy.getRawButton(5);
+    operatorJoybuttonLeftBumperPressed = operatorJoy.getRawButtonPressed(5);
+    operatorJoybuttonRightBumper = operatorJoy.getRawButton(6);
+    operatorJoybuttonRightBumperPressed = operatorJoy.getRawButtonPressed(6);
+    operatorJoybuttonBack = operatorJoy.getRawButton(7);
+    operatorJoybuttonBackPressed = operatorJoy.getRawButtonPressed(7);
+    operatorJoybuttonStart = operatorJoy.getRawButton(8);
+    operatorJoybuttonStartPressed = operatorJoy.getRawButtonPressed(8);
+    operatorJoyAxisLeftStickX = operatorJoy.getRawAxis(0);
+    operatorJoyAxisLeftStickY = operatorJoy.getRawAxis(1);
+    operatorJoyAxisLeftTrigger = operatorJoy.getRawAxis(2);
+    operatorJoyAxisRightTrigger = operatorJoy.getRawAxis(3);
+    operatorJoyAxisRightStickX = operatorJoy.getRawAxis(4);
+    operatorJoyAxisRighttStickY = operatorJoy.getRawAxis(5); 
 
 
     /* Pnumatics Logic */
     if(operatorJoy.getRawButton(1))
     {
-    ejectorSolenoid.set(DoubleSolenoid.Value.kForward);
+      ejectorSolenoid.set(DoubleSolenoid.Value.kForward);
     }
     else if(operatorJoy.getRawButton(2))
     {
-    ejectorSolenoid.set(DoubleSolenoid.Value.kReverse);
+      ejectorSolenoid.set(DoubleSolenoid.Value.kReverse);
     }
     if(operatorJoy.getRawButton(3))
     {
-    Solenoid2.set(DoubleSolenoid.Value.kForward);
+      Solenoid2.set(DoubleSolenoid.Value.kForward);
     }
     else if(operatorJoy.getRawButton(4))
     {
-    Solenoid2.set(DoubleSolenoid.Value.kReverse);
+      Solenoid2.set(DoubleSolenoid.Value.kReverse);
     }
 
      //drive state switcher
-     if (driveState.equals("center"))
-     {
-       if ((centerDirection.equals("left") && !joy1buttonX) || (centerDirection.equals("right") && !joy1buttonB) || centerState.equals("stop"))
-       {
-         tempXAxis = 0;
-         tempYAxis = 0;
-         tempRotation = 0;
-         mecdrive.driveCartesian(0,0,0);
-         lineupState = "start";
-         centerState = "start";
-         driveState = "normal";
-       }
-     }
-     else if (driveState.equals("lineup"))
-     {
-       if (!joy1buttonY || lineupState.equals("stop"))
-       {
-         tempXAxis = 0;
-         tempYAxis = 0;
-         tempRotation = 0;
-         mecdrive.driveCartesian(0,0,0);
-         driveState = "normal";
-         lineupState = "start";
-       }
-     }
-     //no exit conditions and operations
-    else
+    if (driveState.equals("center"))
     {
-      if (joy1buttonX)//X
+      if ((centerDirection.equals("left") && !driveJoybuttonX) || (centerDirection.equals("right") && ! driveJoybuttonB) || centerState.equals("stop"))
       {
-        driveState = "center";
-        centerDirection = "left";
-      }
-      else if (center && joy1buttonB)//B
-      {
-        driveState = "center";
-        centerDirection = "right";
-      }
-      else if (lineup && joy1buttonY)//Y
-      {
-        driveState = "lineup";
-      }
-      /*
-      placeholders
-      */
-      else if (joy1buttonA)//A, placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 1;//back right rocket
-      }
-      else if (false)//placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 2;//right rocket
-      }
-      else if (false)//placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 3;//front right rocket
-      }
-      else if (false)//placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 4;//front
-      }
-      else if (false)//placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 5;//front left rocket
-      }
-      else if (false)//placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 6;//left rocket
-      }
-      else if (false)//placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 7;//back left rocket
-      }
-      else if (false)//placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 8;//loading station
+        tempXAxis = 0;
+        tempYAxis = 0;
+        tempRotation = 0;
+        mecdrive.driveCartesian(0,0,0);
+        lineupState = "start";
+        centerState = "start";
+        driveState = "normal";
       }
     }
+    else if (driveState.equals("lineup"))
+    {
+      if (!driveJoybuttonY || lineupState.equals("stop"))
+      {
+        tempXAxis = 0;
+        tempYAxis = 0;
+        tempRotation = 0;
+        mecdrive.driveCartesian(0,0,0);
+        driveState = "normal";
+        lineupState = "start";
+      }
+    }
+    //no exit conditions and operations
+  else
+  {
+    if (driveJoybuttonX)//X
+    {
+      driveState = "center";
+      centerDirection = "left";
+    }
+    else if (center && driveJoybuttonB)//B
+    {
+      driveState = "center";
+      centerDirection = "right";
+    }
+    else if (lineup && driveJoybuttonY)//Y
+    {
+      driveState = "lineup";
+    }
+    /*
+    placeholders
+    */
+    else if (driveJoybuttonA)//A, placeholder for potential touch screen control
+    {
+      driveState = "fixedOrientation";
+      gyroDirection = 1;//back right rocket
+    }
+    else if (false)//placeholder for potential touch screen control
+    {
+      driveState = "fixedOrientation";
+      gyroDirection = 2;//right rocket
+    }
+    else if (false)//placeholder for potential touch screen control
+    {
+      driveState = "fixedOrientation";
+      gyroDirection = 3;//front right rocket
+    }
+    else if (false)//placeholder for potential touch screen control
+    {
+      driveState = "fixedOrientation";
+      gyroDirection = 4;//front
+    }
+    else if (false)//placeholder for potential touch screen control
+    {
+      driveState = "fixedOrientation";
+      gyroDirection = 5;//front left rocket
+    }
+    else if (false)//placeholder for potential touch screen control
+    {
+      driveState = "fixedOrientation";
+      gyroDirection = 6;//left rocket
+    }
+    else if (false)//placeholder for potential touch screen control
+    {
+      driveState = "fixedOrientation";
+      gyroDirection = 7;//back left rocket
+    }
+    else if (false)//placeholder for potential touch screen control
+    {
+      driveState = "fixedOrientation";
+      gyroDirection = 8;//loading station
+    }
+  }
 
   switch (driveState)
     {
@@ -617,7 +617,7 @@ public class Robot extends TimedRobot
     }//end of switch
 
     //Operator State Switcher
-    if (joy2AxisLeftStickX > 0.2 | joy2AxisLeftStickY > 0.2 | joy2AxisLeftTrigger > 0.2 | joy2AxisRightTrigger > 0.2)
+    if (operatorJoyAxisLeftStickX > 0.2 | operatorJoyAxisLeftStickY > 0.2 | operatorJoyAxisLeftTrigger > 0.2 | operatorJoyAxisRightTrigger > 0.2)
     {
       operatorState = "manual";
     }
@@ -649,12 +649,12 @@ public class Robot extends TimedRobot
     else if (hatchingPositionButton)
     {
       operatorState = "auto";
-      hatchCargoPosition = "ahtchPickupPosition";
+      hatchCargoPosition = "hatchPickupPosition";
     }
     else if (hatchFloorPositionButton)
     {
       operatorState = "auto";
-      hatchCargoPosition = "hatchingFloorPickupPosition";
+      hatchCargoPosition = "hatchFloorPickupPosition";
     }
     else if (cargoPositionButton)
     {
@@ -725,9 +725,9 @@ public class Robot extends TimedRobot
       slowmodifer = 1.0;
     }
 
-    driveXAxis = joy1AxisLeftStickX;
-    driveYAxis = joy1AxisLeftStickY;
-    driveRotation = joy1AxisRightStickX;
+    driveXAxis = operatorJoyAxisLeftStickX;
+    driveYAxis = operatorJoyAxisLeftStickY;
+    driveRotation = operatorJoyAxisRightStickX;
     mecdrive.driveCartesian(driveXAxis * slowmodifer, -driveYAxis * slowmodifer, driveRotation * slowmodifer);
   }
 
@@ -743,8 +743,8 @@ public class Robot extends TimedRobot
       slowmodifer = 1.0;
     }
 
-    driveXAxis = joy1AxisLeftStickX;
-    driveYAxis = joy1AxisLeftStickY;
+    driveXAxis = operatorJoyAxisLeftStickX;
+    driveYAxis = operatorJoyAxisLeftStickY;
     double error = 0;
     double angle = 0;
     double kp = 0.03;
@@ -1031,30 +1031,30 @@ public class Robot extends TimedRobot
   }
   public void operatorManual()
   {
-    if (joy2buttonA == true)
+    if (operatorJoybuttonA == true)
     {
       climbL.set(-1.0);
       climbR.set(-1.0);
     }
-    else if (joy2buttonY == true)
+    else if (operatorJoybuttonY == true)
     {
       climbL.set(1.0);
       climbR.set(1.0);
     }
-    else if (joy2buttonB == true)
+    else if (operatorJoybuttonB == true)
     {
-      WclimbL.set(joy2AxisLeftTrigger);
-      WclimbR.set(joy2AxisRightTrigger);
+      WclimbL.set(operatorJoyAxisLeftTrigger);
+      WclimbR.set(operatorJoyAxisRightTrigger);
     }
-    else if (joy2buttonStart == true)
+    else if (operatorJoybuttonStart == true)
     {
-      climbL.set(joy2AxisLeftTrigger);
-      climbR.set(joy2AxisRightTrigger);
+      climbL.set(operatorJoyAxisLeftTrigger);
+      climbR.set(operatorJoyAxisRightTrigger);
     }
-    else if (joy2buttonBack == true)
+    else if (operatorJoybuttonBack == true)
     {
-      climbL.set(- joy2AxisLeftTrigger);
-      climbR.set(- joy2AxisRightTrigger);
+      climbL.set(- operatorJoyAxisLeftTrigger);
+      climbR.set(- operatorJoyAxisRightTrigger);
     }
     else
     {
@@ -1064,7 +1064,7 @@ public class Robot extends TimedRobot
       WclimbR.set(0);
     }
   
-    if (joy2buttonX)
+    if (operatorJoybuttonX)
     {
       ejectorSolenoid.set(Value.kForward);
     }
@@ -1076,7 +1076,7 @@ public class Robot extends TimedRobot
     //This may need to change to a different encoder position
     if ((liftMotor.getSelectedSensorPosition() == liftHatchLevel3_Position | liftLimitSwitch == false) && disableSafetiesButton == true)
     {
-      liftMotor.set(ControlMode.PercentOutput, joy2AxisLeftStickX);
+      liftMotor.set(ControlMode.PercentOutput, operatorJoyAxisLeftStickX);
     }
     else
     {
@@ -1084,8 +1084,8 @@ public class Robot extends TimedRobot
     }
     if (wristLimitSwitch == false | wristMotor.getSelectedSensorPosition() == wristHatchingFloorPosition)
     {
-      wristMotor.set(ControlMode.PercentOutput, joy2AxisLeftStickY);
-    }
+      wristMotor.set(ControlMode.PercentOutput, operatorJoyAxisLeftStickY);
+    }          
     else
     {
       wristMotor.set(ControlMode.PercentOutput, 0);
