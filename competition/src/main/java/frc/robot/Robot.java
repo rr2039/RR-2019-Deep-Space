@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.ctre.phoenix.motorcontrol.can.*;
 import edu.wpi.first.wpilibj.drive.*;
 import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.*;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.*;
@@ -237,6 +238,13 @@ public class Robot extends TimedRobot
   AnalogInput leftUltrasonic = new AnalogInput(0);
   AnalogInput rightUltrasonic = new AnalogInput(1);
 
+  DigitalInput firstUpperLiftSwitch = new DigitalInput(0);
+  DigitalInput secondUpperLftSwitch= new DigitalInput(0);
+  DigitalInput bottomLiftSwitch = new DigitalInput(0);
+  DigitalInput insideFrameWristSwitch = new DigitalInput(0);
+  DigitalInput climbLSwitch = new DigitalInput(0);
+  DigitalInput climbRSwitch = new DigitalInput(0);
+
   WPI_TalonSRX talonFR = new WPI_TalonSRX(2);
   WPI_TalonSRX talonBR = new WPI_TalonSRX(3);
 
@@ -263,6 +271,8 @@ public class Robot extends TimedRobot
   @Override
   public void robotInit()
   {
+      /* Limit Switches */
+
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
@@ -999,11 +1009,11 @@ public class Robot extends TimedRobot
   public void liftMotorSafe(double speed)
   {
     //The limits will need to be changed
-    if (liftMotor.getSelectedSensorPosition() == 0 && speed > 0) //Upper limit
+    if ( firstUpperLiftSwitch.get() == true && secondUpperLftSwitch.get() == true && speed > 0) //Upper limit
     {
       liftMotor.set(ControlMode.PercentOutput, 0);
     }
-    else if(liftLimitSwitch == true && speed < 0) //Lower limit
+    else if(bottomLiftSwitch.get() == true && speed < 0) //Lower limit
     {
       liftMotor.set(ControlMode.PercentOutput, 0);
     }
@@ -1016,11 +1026,11 @@ public class Robot extends TimedRobot
   public void rotateWristSafe(double speed)
   {
     // Limits that will need to be changed
-    if (wristMotor.getSelectedSensorPosition() == 0 && speed > 0) //Upper Limit
+    if (insideFrameWristSwitch.get() == true && speed > 0) //Inside frame limit
     {
       wristMotor.set(ControlMode.PercentOutput, 0);
     }
-    else if(wristLimitSwitch == true && speed < 0) //Lower Limit
+    else if(wristMotor.getSelectedSensorPosition() == 0 && speed < 0) //Lower Limit
     {
       wristMotor.set(ControlMode.PercentOutput, 0);
     }
@@ -1029,32 +1039,49 @@ public class Robot extends TimedRobot
       wristMotor.set(ControlMode.PercentOutput, speed);
     }
   }
+
+  public void moveStiltsSafe(String direction)
+  {
+    if (climbLSwitch.get() == true || climbRSwitch.get() == true)
+    {
+      climbL.set(0);
+      climbR.set(0);
+    }
+    else if (direction == "up")
+    {
+      climbL.set(ControlMode.PercentOutput, 1.0);
+      climbR.set(ControlMode.PercentOutput, 1.0);
+    }
+    else if (direction == "down")
+    {
+      climbL.set(ControlMode.PercentOutput, -1.0);
+      climbR.set(ControlMode.PercentOutput, -1.0);
+    }
+  }
+
   public void operatorManual()
   {
     if (operatorJoybuttonA == true)
     {
-      climbL.set(-1.0);
-      climbR.set(-1.0);
+      moveStiltsSafe("down");
+      //Set stilt drive wheels to zero, we don't want to drive and climb.
+      WclimbL.set(ControlMode.PercentOutput, 0);
+      WclimbR.set(ControlMode.PercentOutput, 0);
     }
     else if (operatorJoybuttonY == true)
     {
-      climbL.set(1.0);
-      climbR.set(1.0);
+      moveStiltsSafe("up");
+      //Set stilt drive wheels to zero. We don't want to drive and climb.
+      WclimbL.set(ControlMode.PercentOutput, 0);
+      WclimbR.set(ControlMode.PercentOutput, 0);
     }
     else if (operatorJoybuttonB == true)
     {
       WclimbL.set(operatorJoyAxisLeftTrigger);
       WclimbR.set(operatorJoyAxisRightTrigger);
-    }
-    else if (operatorJoybuttonStart == true)
-    {
-      climbL.set(operatorJoyAxisLeftTrigger);
-      climbR.set(operatorJoyAxisRightTrigger);
-    }
-    else if (operatorJoybuttonBack == true)
-    {
-      climbL.set(- operatorJoyAxisLeftTrigger);
-      climbR.set(- operatorJoyAxisRightTrigger);
+      //Set stilt motors to zero. We don't want to drive and climb.
+      climbL.set(ControlMode.PercentOutput, 0);
+      climbR.set(ControlMode.PercentOutput, 0);
     }
     else
     {
@@ -1074,17 +1101,17 @@ public class Robot extends TimedRobot
     }
 
     //This may need to change to a different encoder position
-    if ((liftMotor.getSelectedSensorPosition() == liftHatchLevel3_Position | liftLimitSwitch == false) && disableSafetiesButton == true)
+    if (liftMotor.getSelectedSensorPosition() == liftHatchLevel3_Position)
     {
-      liftMotor.set(ControlMode.PercentOutput, operatorJoyAxisLeftStickX);
+      liftMotorSafe(operatorJoyAxisLeftStickX);
     }
     else
     {
       liftMotor.set(ControlMode.PercentOutput, 0);
     }
-    if (wristLimitSwitch == false | wristMotor.getSelectedSensorPosition() == wristHatchingFloorPosition)
+    if (wristMotor.getSelectedSensorPosition() == wristHatchingFloorPosition)
     {
-      wristMotor.set(ControlMode.PercentOutput, operatorJoyAxisLeftStickY);
+      rotateWristSafe(operatorJoyAxisLeftStickY);
     }          
     else
     {
@@ -1099,65 +1126,65 @@ public class Robot extends TimedRobot
       case "hatchPickupPosition":
       {
         // Position for hatching and picking up from loading station
-        liftMotor.set(ControlMode.Position, liftHatchingPosition);
-        wristMotor.set(ControlMode.Position, wristHatchingPosition);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
         break;
       }
       case "hatchPickupFloorPosition":
       {
         // Position for picking hatches up from the floor
-        liftMotor.set(ControlMode.Position, liftHatchingFloorPosition);
-        wristMotor.set(ControlMode.Position, wristHatchingFloorPosition);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
         break;
       }
       case "cargoPickupPosition":
       {
         // Position for cargo
-        liftMotor.set(ControlMode.Position, liftCargoPickupPosition);
-        wristMotor.set(ControlMode.Position, wristCargoPickupPosition);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
         break;
       }
       //Elevator states
       case "hatchLevel1":
       {
         //move until level 1 (1 ft. 7 in.)
-        liftMotor.set(ControlMode.Position, liftHatchLevel1_Position);
-        wristMotor.set(ControlMode.Position, wristHatchLevel1_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
         break;
       }
       case "hatchLevel2":
       {
         //move until level 2 (3 ft. 11 in.)
-        liftMotor.set(ControlMode.Position, liftHatchLevel2_Position);
-        wristMotor.set(ControlMode.Position, wristHatchLevel2_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
         break;
       }
       case "hatchLevel3":
       {
         //move until next level 3 (5 ft. 15 in.)
-        liftMotor.set(ControlMode.Position, liftHatchLevel3_Position);
-        wristMotor.set(ControlMode.Position, wristHatchLevel3_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
         break;
       }
       case "cargoLevel1":
       {
         //move until level 1 (2 ft. 3.5 in.)
-        liftMotor.set(ControlMode.Position, liftCargoLevel1_Position);
-        wristMotor.set(ControlMode.Position, wristCargoLevel1_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
         break;
       }
       case "cargoLevel2":
       {
         //move until level 2 (4 ft. 7.5 in)
-        liftMotor.set(ControlMode.Position, liftCargoLevel2_Position);
-        wristMotor.set(ControlMode.Position, wristCargoLevel2_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
         break;
       }
       case "cargoLevel3":
       {
         //move until next level 3 (6 ft. 11.5 in)
-        liftMotor.set(ControlMode.Position, liftCargoLevel3_Position);
-        wristMotor.set(ControlMode.Position, wristCargoLevel3_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
         break;
       }
     }
