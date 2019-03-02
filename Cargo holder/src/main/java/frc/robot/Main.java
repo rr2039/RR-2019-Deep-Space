@@ -8,6 +8,13 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.hal.sim.*;
+import edu.wpi.first.hal.sim.mockdata.*;
+import edu.wpi.first.wpilibj.drive.*;
+import edu.wpi.first.wpilibj.networktables.*;
+import edu.wpi.first.wpilibj.buttons.*;
+import edu.wpi.first.wpilibj.command.*;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 /**
  * Do NOT add any static variables to this class, or any initialization at all.
@@ -27,3 +34,9 @@ public final class Main {
     RobotBase.startRobot(Robot::new);
   }
 }
+  public class RIMoter ;
+  public class LOMoter ;
+   
+  WPI_TalonSRX RIMoter = new WPI_TalonSRX(20) ; // Need to be changed
+  
+  
