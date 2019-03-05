@@ -83,11 +83,13 @@ public class Robot extends TimedRobot
 
   /* Robot States */
   private String driveState = "normal";
+  private String operatorState = "manual";
   private String hatchCargoPosition = "startingPosition";
   private String centerState = "start";
   private String centerDirection = "left";
   private String lineupState = "start";
   private int gyroDirection = 4;//facing front
+  private boolean fieldAssistedDrive = true;
 
   /* Operator Buttons */
   boolean hatchLevel1Button;
@@ -125,9 +127,9 @@ public class Robot extends TimedRobot
   boolean driveJoybuttonXPressed = false;
   boolean driveJoybuttonY = false;
   boolean driveJoybuttonYPressed = false;
-  boolean driveJoybuttonLeftBumper = false;
+  boolean lineFollower_Left = false;
   boolean driveJoybuttonLeftBumperPressed = false;
-  boolean driveJoybuttonRightBumper = false;
+  boolean lineFollower_Right = false;
   boolean driveJoybuttonRightBumperPressed = false;
   boolean driveJoybuttonBack = false;
   boolean driveJoybuttonBackPressed = false;
@@ -181,29 +183,9 @@ public class Robot extends TimedRobot
   final double liftCargoPickupPosition = 0;
   final double wristCargoPickupPosition = 0;
   
-  //Hatch level 1 positions
-  final double liftHatchLevel1_Position = 0;
-  final double wristHatchLevel1_Position = 0;
-
-  //Hatch level 2 positions
-  final double liftHatchLevel2_Position = 0;
-  final double wristHatchLevel2_Position = 0;
-  
-  //hatch level 3 positions
-  final double liftHatchLevel3_Position = 0;
-  final double wristHatchLevel3_Position = 0;
-
-  //cargo level 1 positions
-  final double liftCargoLevel1_Position = 0;
-  final double wristCargoLevel1_Position = 0;
-
-  //Cargo level 2 positions
-  final double liftCargoLevel2_Position = 0;
-  final double wristCargoLevel2_Position = 0;
-
-  //Cargo level 3 positions
-  final double liftCargoLevel3_Position = 0;
-  final double wristCargoLevel3_Position = 0;
+  // Hatch and Cargo scoring wrist positions
+  final double wristHatchLevel_Position = 0;
+  final double wristCargoLevel_Position = 0;
 
 
 /* Color Sensor API Variables */
@@ -266,7 +248,6 @@ public class Robot extends TimedRobot
   Compressor compressor = new Compressor(0);
  // Solenoid ejectorSolenoid = new Solenoid(4);
   DoubleSolenoid ejectorSolenoid = new DoubleSolenoid(1, 3);
-  String operatorState = "manual";
   DoubleSolenoid Solenoid2 = new DoubleSolenoid(0, 2);
 // ----------------------------------------------------------------------------------------
   @Override
@@ -413,9 +394,9 @@ public class Robot extends TimedRobot
     driveJoybuttonXPressed = driveJoy.getRawButtonPressed(3);
     driveJoybuttonY = driveJoy.getRawButton(4);
     driveJoybuttonYPressed = driveJoy.getRawButtonPressed(4);
-    driveJoybuttonLeftBumper = driveJoy.getRawButton(5);
+    lineFollower_Left = driveJoy.getRawButton(5);
     driveJoybuttonLeftBumperPressed = driveJoy.getRawButtonPressed(5);
-    driveJoybuttonRightBumper = driveJoy.getRawButton(6);
+    lineFollower_Right = driveJoy.getRawButton(6);
     driveJoybuttonRightBumperPressed = driveJoy.getRawButtonPressed(6);
     driveJoybuttonBack = driveJoy.getRawButton(7);
     driveJoybuttonBackPressed = driveJoy.getRawButtonPressed(7);
@@ -451,6 +432,18 @@ public class Robot extends TimedRobot
     operatorJoyAxisRightStickX = operatorJoy.getRawAxis(4);
     operatorJoyAxisRighttStickY = operatorJoy.getRawAxis(5); 
 
+    if (lineFollower_Left)
+    {
+      centerDirection = "left";
+    }
+    else if (lineFollower_Right)
+    {
+      centerDirection = "right";
+    }
+    else
+    {
+      centerDirection = "stop";
+    }
 
     /* Pnumatics Logic */
     if(operatorJoy.getRawButton(1))
@@ -701,7 +694,14 @@ public class Robot extends TimedRobot
     driveXAxis = operatorJoyAxisLeftStickX;
     driveYAxis = operatorJoyAxisLeftStickY;
     driveRotation = operatorJoyAxisRightStickX;
-    mecdrive.driveCartesian(driveXAxis * slowmodifer, -driveYAxis * slowmodifer, driveRotation * slowmodifer);
+    if (fieldAssistedDrive)
+    {
+      mecdrive.driveCartesian(driveXAxis * slowmodifer, -driveYAxis * slowmodifer, driveRotation * slowmodifer, ahrs.getAngle());
+    }
+    else
+    {
+      mecdrive.driveCartesian(driveXAxis * slowmodifer, -driveYAxis * slowmodifer, driveRotation * slowmodifer);
+    }
   }
 
   public void driveFixedOrientation()
@@ -1064,7 +1064,7 @@ public class Robot extends TimedRobot
     }
 
     //This may need to change to a different encoder position
-    if (liftMotor.getSelectedSensorPosition() == liftHatchLevel3_Position)
+    if (liftMotor.getSelectedSensorPosition() == linearEncoderConversion(0))
     {
       liftMotorSafe(operatorJoyAxisLeftStickX);
     }
@@ -1090,21 +1090,21 @@ public class Robot extends TimedRobot
       {
         // Position for hatching and picking up from loading station
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
         break;
       }
       case "hatchPickupFloorPosition":
       {
         // Position for picking hatches up from the floor
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristHatchingFloorPosition);
         break;
       }
       case "cargoPickupPosition":
       {
         // Position for cargo
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristCargoPickupPosition);
         break;
       }
       //Elevator states
@@ -1112,42 +1112,42 @@ public class Robot extends TimedRobot
       {
         //move until level 1 (1 ft. 7 in.)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
         break;
       }
       case "hatchLevel2":
       {
         //move until level 2 (3 ft. 11 in.)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
         break;
       }
       case "hatchLevel3":
       {
         //move until next level 3 (5 ft. 15 in.)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
         break;
       }
       case "cargoLevel1":
       {
         //move until level 1 (2 ft. 3.5 in.)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristCargoLevel_Position);
         break;
       }
       case "cargoLevel2":
       {
         //move until level 2 (4 ft. 7.5 in)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristCargoLevel_Position);
         break;
       }
       case "cargoLevel3":
       {
         //move until next level 3 (6 ft. 11.5 in)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristCargoLevel_Position);
         break;
       }
     }
