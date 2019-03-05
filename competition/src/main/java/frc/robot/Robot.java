@@ -238,6 +238,7 @@ public class Robot extends TimedRobot
   AnalogInput leftUltrasonic = new AnalogInput(0);
   AnalogInput rightUltrasonic = new AnalogInput(1);
 
+  /* These need the proper ID */
   DigitalInput firstUpperLiftSwitch = new DigitalInput(0);
   DigitalInput secondUpperLftSwitch= new DigitalInput(0);
   DigitalInput bottomLiftSwitch = new DigitalInput(0);
@@ -331,64 +332,6 @@ public class Robot extends TimedRobot
   @Override
   public void robotPeriodic()
   {
-
-    SmartDashboard.putNumber("alphavalue", alpha);
-    center = operatorJoy.getRawButton(5);
-    slowdown = driveJoy.getRawButton(1);
-    lineup = driveJoy.getRawButton(2);
-    gyromove = driveJoy.getRawButton(3);
-
-
-    USSLout = (int) (leftUltrasonic.getAverageVoltage() * 147);
-    USSRout = (int) (rightUltrasonic.getAverageVoltage() * 147);
-    SmartDashboard.putNumber("Ultrasonic L", USSLout);
-    SmartDashboard.putNumber("Ultrasonic R", USSRout);
-
-    SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
-    SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
-
-
-    /* Drivetrain Ramping */
-    talonFR.configOpenloopRamp(0.20, 20);
-    talonFL.configOpenloopRamp(0.20, 20);
-    talonBL.configOpenloopRamp(0.20, 20);
-    talonBR.configOpenloopRamp(0.20, 20);
-
-    /* Deadzone Logic */
-    //Potentially replace with setDeadBand()
-    //Potentially causes problems when we do not need deadband
-    //mecdrive.setDeadband(0.2);
-    if (operatorJoy.getRawAxis(0) > deadzone || operatorJoy.getRawAxis(0) < -deadzone)
-    {
-      xaxis = operatorJoy.getRawAxis(0);
-    }
-    else
-    {
-      xaxis = 0;
-    }
-    if (operatorJoy.getRawAxis(1) > deadzone || operatorJoy.getRawAxis(1) < -deadzone)
-    {
-      yaxis = operatorJoy.getRawAxis(1);
-    }
-    else
-    {
-      yaxis = 0;
-    }
-    if (driveJoy.getRawAxis(4) > deadzone || driveJoy.getRawAxis(4) < -deadzone)
-    {
-      rotation = driveJoy.getRawAxis(4);
-    }
-    else
-    {
-      rotation = 0;
-    }
-
-    /*
-    position = motor.getSelectedSensorPosition();
-    velocity = motor.getSelectedSensorVelocity();
-    */
-
-    
   }
   // ----------------------------------------------------------------------------------------
   @Override
@@ -408,7 +351,7 @@ public class Robot extends TimedRobot
         break;
       case kDefaultAuto:
       default:
-
+        mainCode();
         break;
     }
   }
@@ -416,7 +359,27 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic()
   {
+    mainCode();
+  }
+  public void mainCode()
+  {
     //Smart dashboard stuff
+    SmartDashboard.putNumber("alphavalue", alpha);
+    USSLout = (int) (leftUltrasonic.getAverageVoltage() * 147);
+    USSRout = (int) (rightUltrasonic.getAverageVoltage() * 147);
+    SmartDashboard.putNumber("Ultrasonic L", USSLout);
+    SmartDashboard.putNumber("Ultrasonic R", USSRout);
+
+    SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
+    SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
+
+
+    /* Drivetrain Ramping */
+    talonFR.configOpenloopRamp(0.20, 20);
+    talonFL.configOpenloopRamp(0.20, 20);
+    talonBL.configOpenloopRamp(0.20, 20);
+    talonBR.configOpenloopRamp(0.20, 20);
+
     SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
     SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
     SmartDashboard.putNumber("alphavalue", alpha);
@@ -463,7 +426,7 @@ public class Robot extends TimedRobot
     driveJoyAxisLeftTrigger = driveJoy.getRawAxis(2);
     driveJoyAxisRightTrigger = driveJoy.getRawAxis(3);
     driveJoyAxisRightStickX = driveJoy.getRawAxis(4);
-    driveJoyAxisRighttStickY = driveJoy.getRawAxis(5); 
+    driveJoyAxisRighttStickY = driveJoy.getRawAxis(5);
 
     operatorJoybuttonA = operatorJoy.getRawButton(1);
     operatorJoybuttonAPressed = operatorJoy.getRawButtonPressed(1);
@@ -541,12 +504,12 @@ public class Robot extends TimedRobot
       driveState = "center";
       centerDirection = "left";
     }
-    else if (center && driveJoybuttonB)//B
+    else if (operatorJoybuttonB)//B
     {
       driveState = "center";
       centerDirection = "right";
     }
-    else if (lineup && driveJoybuttonY)//Y
+    else if (driveJoybuttonY)//Y
     {
       driveState = "lineup";
     }
@@ -1069,29 +1032,24 @@ public class Robot extends TimedRobot
     if (operatorJoybuttonA == true)
     {
       moveStiltsSafe("down");
-      //Set stilt drive wheels to zero, we don't want to drive and climb.
-      WclimbL.set(ControlMode.PercentOutput, 0);
-      WclimbR.set(ControlMode.PercentOutput, 0);
     }
     else if (operatorJoybuttonY == true)
     {
       moveStiltsSafe("up");
-      //Set stilt drive wheels to zero. We don't want to drive and climb.
-      WclimbL.set(ControlMode.PercentOutput, 0);
-      WclimbR.set(ControlMode.PercentOutput, 0);
-    }
-    else if (operatorJoybuttonB == true)
-    {
-      WclimbL.set(operatorJoyAxisLeftTrigger);
-      WclimbR.set(operatorJoyAxisRightTrigger);
-      //Set stilt motors to zero. We don't want to drive and climb.
-      climbL.set(ControlMode.PercentOutput, 0);
-      climbR.set(ControlMode.PercentOutput, 0);
     }
     else
     {
       climbL.set(0);
       climbR.set(0);
+    }
+    
+    if (operatorJoybuttonB == true)
+    {
+      WclimbL.set(operatorJoyAxisLeftTrigger);
+      WclimbR.set(operatorJoyAxisRightTrigger);
+    }
+    else
+    {
       WclimbL.set(0);
       WclimbR.set(0);
     }
