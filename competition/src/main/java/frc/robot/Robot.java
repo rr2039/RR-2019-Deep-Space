@@ -83,7 +83,7 @@ public class Robot extends TimedRobot
 
   /* Robot States */
   private String driveState = "normal";
-  private String operatorState = "manual";
+  private String operatorState = "auto";
   private String hatchCargoPosition = "startingPosition";
   private String centerState = "start";
   private String centerDirection = "left";
@@ -165,6 +165,19 @@ public class Robot extends TimedRobot
   double operatorJoyAxisRightStickX = 0;
   double operatorJoyAxisRighttStickY = 0;
 
+  boolean operatorShift = false;
+  boolean operatorHatchLevel_1 = false;
+  boolean operatorHatchLevel_2 = false;
+  boolean operatorHatchLevel_3 = false;
+  boolean operatorCargoLevel_1 = false;
+  boolean operatorCargoLevel_2 = false;
+  boolean operatorCargoLevel_3 = false;
+
+  double operator_ZAxis;
+  boolean pneumaticsFire = false;
+  boolean cargoEject = false;
+  boolean cargoIntake = false;
+
   /* Constants for the encoder values for required positions */
 
   //Starting Positions
@@ -217,10 +230,10 @@ public class Robot extends TimedRobot
   AHRS ahrs = new AHRS(SerialPort.Port.kUSB1);
   double heading = 0;
 
+  /* Check all IDs */
   AnalogInput leftUltrasonic = new AnalogInput(0);
   AnalogInput rightUltrasonic = new AnalogInput(1);
 
-  /* These need the proper ID */
   DigitalInput firstUpperLiftSwitch = new DigitalInput(0);
   DigitalInput secondUpperLftSwitch= new DigitalInput(0);
   DigitalInput bottomLiftSwitch = new DigitalInput(0);
@@ -242,6 +255,9 @@ public class Robot extends TimedRobot
 
   WPI_TalonSRX WclimbL = new WPI_TalonSRX(8);
   WPI_TalonSRX WclimbR = new WPI_TalonSRX(7);
+
+  WPI_VictorSPX leftCargoIntake = new WPI_VictorSPX(10);
+  WPI_VictorSPX rightCargoIntake = new WPI_VictorSPX(11);
 
   MecanumDrive mecdrive = new MecanumDrive(talonFL, talonBL, talonFR, talonBR);
   
@@ -432,6 +448,47 @@ public class Robot extends TimedRobot
     operatorJoyAxisRightStickX = operatorJoy.getRawAxis(4);
     operatorJoyAxisRighttStickY = operatorJoy.getRawAxis(5); 
 
+    operator_ZAxis = operatorJoy.getRawAxis(2);
+    operatorShift = operatorJoy.getRawButton(1);
+
+    if (operator_ZAxis < 0.85 || operator_ZAxis  > -0.85)
+    {
+      pneumaticsFire = operatorJoy.getRawButton(2);
+      cargoIntake = false;
+      pneumaticsFire = false;
+    }
+    else if (operator_ZAxis > 0.85 )
+    {
+      cargoEject = operatorJoy.getRawButton(2);
+      cargoIntake = false;
+      pneumaticsFire = false;
+    }
+    else if (operator_ZAxis < -0.85)
+    {
+      cargoIntake = operatorJoy.getRawButton(2);
+      cargoEject = false;
+      pneumaticsFire = false;
+    }
+    if (operatorShift)
+    {
+      operatorCargoLevel_1 = operatorJoy.getRawButton(4);
+      operatorCargoLevel_2 = operatorJoy.getRawButton(3);
+      operatorCargoLevel_3 = operatorJoy.getRawButton(5);
+
+      operatorHatchLevel_1 = false;
+      operatorHatchLevel_2 = false;
+      operatorHatchLevel_3 = false;
+    }
+    else
+    {
+      operatorHatchLevel_1 = operatorJoy.getRawButton(4);
+      operatorHatchLevel_2 = operatorJoy.getRawButton(3);
+      operatorHatchLevel_3 = operatorJoy.getRawButton(5);
+
+      operatorCargoLevel_1 = false;
+      operatorCargoLevel_2 = false;
+      operatorCargoLevel_3 = false;
+    }
     if (lineFollower_Left)
     {
       centerDirection = "left";
@@ -445,22 +502,29 @@ public class Robot extends TimedRobot
       centerDirection = "stop";
     }
 
+    if (cargoEject)
+    {
+      leftCargoIntake.set(1.0);
+      rightCargoIntake.set(-1.0);
+    }
+    else if (cargoIntake)
+    {
+      leftCargoIntake.set(-1.0);
+      rightCargoIntake.set(1.0);
+    }
+    else
+    {
+      leftCargoIntake.set(0);
+      rightCargoIntake.set(0);
+    }
     /* Pnumatics Logic */
-    if(operatorJoy.getRawButton(1))
+    if(pneumaticsFire)
     {
       ejectorSolenoid.set(DoubleSolenoid.Value.kForward);
     }
-    else if(operatorJoy.getRawButton(2))
+    else
     {
       ejectorSolenoid.set(DoubleSolenoid.Value.kReverse);
-    }
-    if(operatorJoy.getRawButton(3))
-    {
-      Solenoid2.set(DoubleSolenoid.Value.kForward);
-    }
-    else if(operatorJoy.getRawButton(4))
-    {
-      Solenoid2.set(DoubleSolenoid.Value.kReverse);
     }
 
      //drive state switcher
@@ -587,25 +651,35 @@ public class Robot extends TimedRobot
     {
       operatorState = "manual";
     }
-    else if (hatchLevel1Button)
+    else if (operatorHatchLevel_1)
     {
       operatorState = "auto";
       hatchCargoPosition = "hatchLevel1";
     }
-    else if (hatchLevel2Button)
+    else if (operatorHatchLevel_2)
     {
       operatorState = "auto";
       hatchCargoPosition = "hatchLevel2";
     }
-    else if (hatchLevel3Button)
+    else if (operatorHatchLevel_3)
     {
       operatorState = "auto";
       hatchCargoPosition = "hatchLevel3";
     }
-    else if (cargoLevel1Button)
+    else if (operatorCargoLevel_1)
     {
       operatorState = "auto";
       hatchCargoPosition = "cargoLevel1";
+    }
+    else if (operatorCargoLevel_2)
+    {
+      operatorState = "auto";
+      hatchCargoPosition = "cargoLevel2";
+    }
+    else if (operatorCargoLevel_3)
+    {
+      operatorState = "auto";
+      hatchCargoPosition = "cargoLevel3";
     }
     else if (startingPositionButton)
     {
@@ -1015,12 +1089,12 @@ public class Robot extends TimedRobot
       climbL.set(0);
       climbR.set(0);
     }
-    else if (direction == "up")
+    else if (direction.equals("up")
     {
       climbL.set(ControlMode.PercentOutput, 1.0);
       climbR.set(ControlMode.PercentOutput, 1.0);
     }
-    else if (direction == "down")
+    else if (direction.equals("down"))
     {
       climbL.set(ControlMode.PercentOutput, -1.0);
       climbR.set(ControlMode.PercentOutput, -1.0);
