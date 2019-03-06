@@ -492,14 +492,17 @@ public class Robot extends TimedRobot
     if (lineFollower_Left)
     {
       centerDirection = "left";
+      driveState = "center";
     }
     else if (lineFollower_Right)
     {
       centerDirection = "right";
+      driveState = "center";
     }
     else
     {
       centerDirection = "stop";
+      driveState = "normal";
     }
 
     if (cargoEject)
@@ -724,7 +727,7 @@ public class Robot extends TimedRobot
 
   }
   /* Ultrasonic Lineup Function */
-   public void USCorrection()
+  /*public void USCorrection()
   {
     lineUS = ((USSLout - USSRout) / 500);
 
@@ -742,7 +745,7 @@ public class Robot extends TimedRobot
     {
       rotation = -0.175 + lineUS;
     }
-  }
+  }*/
  
   public short readAlphaIntensity()
   {
@@ -1089,7 +1092,7 @@ public class Robot extends TimedRobot
       climbL.set(0);
       climbR.set(0);
     }
-    else if (direction.equals("up")
+    else if (direction.equals("up"))
     {
       climbL.set(ControlMode.PercentOutput, 1.0);
       climbR.set(ControlMode.PercentOutput, 1.0);
