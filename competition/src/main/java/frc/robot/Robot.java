@@ -1084,6 +1084,55 @@ public class Robot extends TimedRobot
     mecdrive.driveCartesian(tempXAxis,tempYAxis,tempRotation);
   }//end of driveLineup()
 
+  public void trackedStilts()
+  {
+    double leftStilt = climbL.getSelectedSensorPosition();
+    double rightStilt = climbR.getSelectedSensorPosition();
+    double stiltError = Math.abs(leftStilt - rightStilt);
+    double multiplier = stiltError / 1;
+    double baseSpeed = 0.1;
+    double stiltThreshold = 100;
+
+
+    if ((stiltError >= stiltThreshold) && (leftStilt < rightStilt))
+    {
+      moveStiltsSafeAuto(baseSpeed, 0);
+    }
+    else if ((stiltError >= stiltThreshold) && (leftStilt > rightStilt))
+    {
+      moveStiltsSafeAuto(0, baseSpeed);
+    }
+    else if ((stiltError < stiltThreshold) && (leftStilt <= rightStilt))
+    {
+      moveStiltsSafeAuto(baseSpeed, baseSpeed - multiplier);
+    }
+    else if ((stiltError < stiltThreshold) && (leftStilt > rightStilt))
+    {
+      moveStiltsSafeAuto(baseSpeed - multiplier, baseSpeed);
+    }
+  }
+
+  public void trackedClimb_to_Stilts()
+  {
+    double lift = liftMotor.getSelectedSensorPosition();
+    double leftStilt = climbL.getSelectedSensorPosition();
+    double rightStilt = climbR.getSelectedSensorPosition();
+    double maximumStiltPosition = Math.max(leftStilt, rightStilt);
+    double baseSpeed = 0.1;
+    double liftStiltError = Math.abs(lift - Math.max(leftStilt, rightStilt));
+    double multiplier = liftStiltError / 1;
+    double liftThreshold = 100;
+
+    if ((liftStiltError < liftThreshold) && (lift >= -maximumStiltPosition)
+    {
+      liftMotorSafe(baseSpeed - multiplier);
+    }
+    else if ((liftStiltError < liftThreshold) && (lift < -maximumStiltPosition)
+    {
+      liftMotorSafe(baseSpeed + multiplier);
+    }
+  }
+
   public void driveClimb()
   {
     switch (climbState)
@@ -1283,6 +1332,7 @@ public class Robot extends TimedRobot
 
   public void moveStiltsSafe(String direction)
   {
+    // Use this method in operatorManual()
     if (climbLSwitch.get() == true || climbRSwitch.get() == true)
     {
       climbL.set(0);
@@ -1297,6 +1347,21 @@ public class Robot extends TimedRobot
     {
       climbL.set(ControlMode.PercentOutput, -1.0);
       climbR.set(ControlMode.PercentOutput, -1.0);
+    }
+  }
+
+  public void moveStiltsSafeAuto(double leftSpeed, double rightSpeed)
+  {
+    // Use this method for auto climb
+    if (climbLSwitch.get() == true || climbRSwitch.get() == true)
+    {
+      climbL.set(0);
+      climbR.set(0);
+    }
+    else
+    {
+      climbL.set(ControlMode.PercentOutput, leftSpeed);
+      climbR.set(ControlMode.PercentOutput, rightSpeed);
     }
   }
 
