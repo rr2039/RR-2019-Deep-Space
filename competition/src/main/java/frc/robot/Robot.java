@@ -80,6 +80,7 @@ public class Robot extends TimedRobot
   private double tempXAxis = 0;
   private double tempYAxis = 0;
   private double tempRotation = 0;
+  private edu.wpi.first.wpilibj.Timer timer = new edu.wpi.first.wpilibj.Timer();
 
   /* Robot States */
   private String driveState = "normal";
@@ -88,6 +89,7 @@ public class Robot extends TimedRobot
   private String centerState = "start";
   private String centerDirection = "left";
   private String lineupState = "start";
+  private String climbState = "start";
   private int gyroDirection = 4;//facing front
   private boolean fieldAssistedDrive = true;
 
@@ -308,6 +310,24 @@ public class Robot extends TimedRobot
     liftMotor.config_kF(0, 0.1, 30);
     liftMotor.configClosedLoopPeriod(0, 1, 30);
     liftMotor.configClearPositionOnQuadIdx(clear, 20);
+
+    climbL.setSensorPhase(true);
+    climbL.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
+    climbL.config_kP(0, 0.01, 30);
+    climbL.config_kI(0, 0.25, 30);
+    climbL.config_kD(0, 0.015, 30);
+    climbL.config_kF(0, 0.1, 30);
+    climbL.configClosedLoopPeriod(0, 1, 30);
+    climbL.configClearPositionOnQuadIdx(clear, 20);
+
+    climbR.setSensorPhase(true);
+    climbR.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
+    climbR.config_kP(0, 0.01, 30);
+    climbR.config_kI(0, 0.25, 30);
+    climbR.config_kD(0, 0.015, 30);
+    climbR.config_kF(0, 0.1, 30);
+    climbR.configClosedLoopPeriod(0, 1, 30);
+    climbR.configClearPositionOnQuadIdx(clear, 20);
 
     /* Drivetrain Ramping */
     talonFR.configOpenloopRamp(0.25, 20);
@@ -556,6 +576,19 @@ public class Robot extends TimedRobot
         lineupState = "start";
       }
     }
+    else if (driveState.equals("climb"))
+    {
+      if (!operatorJoy.getRawButton(6) || climbState.equals("stop"))
+      {
+        tempXAxis = 0;
+        tempYAxis = 0;
+        tempRotation = 0;
+        mecdrive.driveCartesian(0,0,0);
+        driveState = "normal";
+        climbState = "start";
+        operatorState = "auto";
+      }
+    }
     //no exit conditions and operations
   else
   {
@@ -641,6 +674,13 @@ public class Robot extends TimedRobot
         break;
       }//end of lineup
 
+      //climb state
+      case "climb":
+      {
+        driveClimb();
+        break;
+      }//end of climb
+
       //gyro fixed orientation state
       case "fixedOrientation":
       {
@@ -716,6 +756,11 @@ public class Robot extends TimedRobot
       case "auto":
       {
         operatorAuto();
+        break;
+      }
+
+      case "stop":
+      {
         break;
       }
     }
@@ -1038,6 +1083,157 @@ public class Robot extends TimedRobot
 
     mecdrive.driveCartesian(tempXAxis,tempYAxis,tempRotation);
   }//end of driveLineup()
+
+  public void driveClimb()
+  {
+    switch (climbState)
+    {
+      //start climb
+      case "start":
+      {
+        if ((liftMotor.getSelectedSensorPosition() < 2050) && (wristMotor.getSelectedSensorPosition() > 1950))
+        {
+          climbState = "up";
+        }
+
+        else
+        {
+          operatorState = "stop";
+          wristMotor.set(ControlMode.Position, 2000);//all the way down
+          liftMotor.set(ControlMode.Position, 2000);//coming down from above
+        }
+
+        break;
+      }
+
+      case "up":
+      {
+        if ((liftMotor.getSelectedSensorPosition() < 100) || (climbL.getSelectedSensorPosition() > 4950) || (climbR.getSelectedSensorPosition() > 4950)) 
+        {
+          wristMotor.set(ControlMode.Position, 2000);//all the way down
+          liftMotor.set(ControlMode.Position, 50);
+          climbL.set(ControlMode.Position, 5000);
+          climbR.set(ControlMode.Position, 5000);
+          climbState = "forward1_start";
+        }
+
+        else
+        {
+          wristMotor.set(ControlMode.Position, 2000);//all the way down
+          liftMotor.set(ControlMode.Velocity, -0.5);//not sure about the range of velocity
+          climbL.set(ControlMode.Velocity, 0.5);
+          climbR.set(ControlMode.Velocity, 0.5);
+        }
+
+        break;
+      }
+
+      case "forward1_start":
+      {
+        timer.reset();
+        timer.start();
+        climbState = "forward1_run";
+        break;
+      }
+
+      case "forward1_run":
+      {
+        if (timer.get() > 1)
+        {
+          climbState = "forward2_start";
+        }
+
+        else
+        {
+          wristMotor.set(ControlMode.Position, 2000);//all the way down
+          liftMotor.set(ControlMode.Position, 50);
+          climbL.set(ControlMode.Position, 5000);
+          climbR.set(ControlMode.Position, 5000);
+          mecdrive.driveCartesian(0, 0.4, 0);
+        }
+
+        break;
+      }
+
+      case "forward2_start":
+      {
+        timer.reset();
+        timer.start();
+        climbState = "forward2_run";
+        break;
+      }
+
+      case "forward2_run":
+      {
+        if (timer.get() > 1)
+        {
+          mecdrive.driveCartesian(0, 0, 0);
+          climbState = "retract_stilts";
+        }
+
+        else
+        {
+          wristMotor.set(ControlMode.Position, 100);//up
+          liftMotor.set(ControlMode.Position, 500);//up a little
+          climbL.set(ControlMode.Position, 5000);
+          climbR.set(ControlMode.Position, 5000);
+          mecdrive.driveCartesian(0, 0.4, 0);
+        }
+
+        break;
+      }
+
+      case "retract_stilts":
+      {
+        if ((climbL.getSelectedSensorPosition() < 100) || (climbR.getSelectedSensorPosition() < 100))
+        {
+          climbL.set(ControlMode.Position, 50);
+          climbR.set(ControlMode.Position, 50);
+          climbState = "forward3_start";
+        }
+
+        else
+        {
+          wristMotor.set(ControlMode.Position, 100);//up
+          liftMotor.set(ControlMode.Position, 500);//up a little
+          climbL.set(ControlMode.Velocity, -0.5);
+          climbR.set(ControlMode.Velocity, -0.5);
+        }
+
+        break;
+      }
+
+      case "forward3_start":
+      {
+        timer.reset();
+        timer.start();
+        climbState = "forward3_run";
+        break;
+      }
+
+      case "forward3_run":
+      {
+        if (timer.get() > 1.5)
+        {
+          mecdrive.driveCartesian(0, 0, 0);
+          climbState = "stop";
+        }
+
+        else
+        {
+          wristMotor.set(ControlMode.Position, 100);//up
+          liftMotor.set(ControlMode.Position, 500);//up a little
+          climbL.set(ControlMode.Position, 50);
+          climbR.set(ControlMode.Position, 50);
+          mecdrive.driveCartesian(0, 0.4, 0);
+        }
+
+        break;
+      }
+    }//end of switch
+
+    mecdrive.driveCartesian(tempXAxis,tempYAxis,tempRotation);
+  }//end of driveClimb()
 
   public double linearEncoderConversion(double targetInches)
   {
