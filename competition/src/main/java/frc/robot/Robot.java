@@ -1123,11 +1123,11 @@ public class Robot extends TimedRobot
     double multiplier = liftStiltError / 1;
     double liftThreshold = 100;
 
-    if ((liftStiltError < liftThreshold) && (lift >= -maximumStiltPosition)
+    if ((liftStiltError < liftThreshold) && (lift >= -maximumStiltPosition))
     {
       liftMotorSafe(baseSpeed - multiplier);
     }
-    else if ((liftStiltError < liftThreshold) && (lift < -maximumStiltPosition)
+    else if ((liftStiltError < liftThreshold) && (lift < -maximumStiltPosition))
     {
       liftMotorSafe(baseSpeed + multiplier);
     }
