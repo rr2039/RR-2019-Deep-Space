@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import com.ctre.phoenix.motorcontrol.can.*;
 import edu.wpi.first.wpilibj.drive.*;
 import edu.wpi.first.wpilibj.*;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.*;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.*;
@@ -21,6 +22,9 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+
+import javax.lang.model.util.ElementScanner6;
+
 import com.ctre.phoenix.motorcontrol.*;
 
 // ----------------------------------------------------------------------------------------
@@ -39,12 +43,12 @@ public class Robot extends TimedRobot
   double voutBR;
 
 /* Joystick 1 Drive variables */
-  double xaxis;
+  /*double xaxis;
   double yaxis;
   double rotation;
   double deadzone = 0.20;
   boolean liftup;
-  boolean liftdown;
+  boolean liftdown;*/
 
 /* Manual drive variables */
   double driveXAxis;
@@ -57,12 +61,12 @@ public class Robot extends TimedRobot
   double lineUS;
 
   /* Alignment Variables */
-  double gyroangle;
+  /*double gyroangle;
   boolean lineup;
   boolean gyromove;
   boolean center = false;
   boolean centerLeft = false;
-  boolean centerRight = false;
+  boolean centerRight = false;*/
   private double centerStrafeSpeed = 0.7;
   private double centerReverseSpeed = 0.4;
   private double centerReverseSpeed2 = 0.38;
@@ -70,36 +74,117 @@ public class Robot extends TimedRobot
   private int centerIterations2 = 10;
   private int centerIterationsCount = 0;//the count of iterations to reverse
   //Color sensor error estimate
-  private int alphaFirst = 0;
+  //private int alphaFirst = 0;
 
   /* Automated Drive Variables */
   private double tempXAxis = 0;
   private double tempYAxis = 0;
   private double tempRotation = 0;
+  private edu.wpi.first.wpilibj.Timer timer = new edu.wpi.first.wpilibj.Timer();
 
   /* Robot States */
   private String driveState = "normal";
-  private String operatorState = "manual";
+  private String operatorState = "auto";
   private String hatchCargoPosition = "startingPosition";
   private String centerState = "start";
   private String centerDirection = "left";
   private String lineupState = "start";
-  private int gyroDirection = 4;//facing front
+  private String climbState = "start";
+  private String climbLevel = "3";
+  //private int gyroDirection = 4;//facing front
+  private boolean fieldAssistedDrive = true;
 
   /* Operator Buttons */
-  boolean hatchLevel1Button;
+  /*boolean hatchLevel1Button;
   boolean hatchLevel2Button;
   boolean hatchLevel3Button;
   boolean cargoLevel1Button;
   boolean cargoLevel2Button;
   boolean cargoLevel3Button;
-  boolean disableSafetiesButton;
+  boolean disableSafetiesButton;*/
 
   //These variables determine the state of the pickup system.
   boolean startingPositionButton;
-  boolean hatchingPositionButton;
+  boolean hatchingPositionButton; //This is the same as hatch level 1
   boolean hatchFloorPositionButton;
   boolean cargoPositionButton;
+
+  /* Limit Switches */
+  boolean liftLimitSwitch = false;
+  boolean wristLimitSwitch = false;
+
+/* Joystick 1 Control variables */
+  Joystick driveJoy = new Joystick(0);
+  boolean slowdown = false;
+  double slowmodifer = 1.0;
+  boolean clear = true;
+
+  Joystick operatorJoy = new Joystick(1);
+
+  //Controls
+  boolean driveJoybuttonA = false;
+  boolean driveJoybuttonAPressed = false;
+  boolean driveJoybuttonB = false;
+  boolean driveJoybuttonBPressed = false;
+  boolean driveJoybuttonX = false;
+  boolean driveJoybuttonXPressed = false;
+  boolean driveJoybuttonY = false;
+  boolean driveJoybuttonYPressed = false;
+  boolean lineFollower_Left = false;
+  boolean driveJoybuttonLeftBumperPressed = false;
+  boolean lineFollower_Right = false;
+  boolean driveJoybuttonRightBumperPressed = false;
+  boolean driveJoybuttonBack = false;
+  boolean driveJoybuttonBackPressed = false;
+  boolean driveJoybuttonStart = false;
+  boolean driveJoybuttonStartPressed = false;
+  double driveJoyAxisLeftStickX = 0;
+  double driveJoyAxisLeftStickY = 0;
+  double driveJoyAxisLeftTrigger = 0;
+  double driveJoyAxisRightTrigger = 0;
+  double driveJoyAxisRightStickX = 0;
+  double driveJoyAxisRighttStickY = 0;
+  
+  /*boolean operatorJoybuttonA = false;
+  boolean operatorJoybuttonAPressed = false;
+  boolean operatorJoybuttonB = false;
+  boolean operatorJoybuttonBPressed = false;
+  boolean operatorJoybuttonX = false;
+  boolean operatorJoybuttonXPressed = false;
+  boolean operatorJoybuttonY = false;
+  boolean operatorJoybuttonYPressed = false;
+  boolean operatorJoybuttonLeftBumper = false;
+  boolean operatorJoybuttonLeftBumperPressed = false;
+  boolean operatorJoybuttonRightBumper = false;
+  boolean operatorJoybuttonRightBumperPressed = false;
+  boolean operatorJoybuttonBack = false;
+  boolean operatorJoybuttonBackPressed = false;
+  boolean operatorJoybuttonStart = false;
+  boolean operatorJoybuttonStartPressed = false;
+  double operatorJoyAxisLeftStickX = 0;
+  double operatorJoyAxisLeftStickY = 0;
+  double operatorJoyAxisLeftTrigger = 0;
+  double operatorJoyAxisRightTrigger = 0;
+  double operatorJoyAxisRightStickX = 0;
+  double operatorJoyAxisRighttStickY = 0;*/
+
+  boolean manualON = true;
+
+  boolean operatorShift = false;
+  boolean operatorHatchLevel_1 = false;
+  boolean operatorHatchLevel_2 = false;
+  boolean operatorHatchLevel_3 = false;
+  boolean operatorCargoLevel_1 = false;
+  boolean operatorCargoLevel_2 = false;
+  boolean operatorCargoLevel_3 = false;
+
+  boolean climb1stLevel = false;
+  boolean climb3rdLevel = false;
+
+  double operator_ZAxis;
+  boolean pneumaticsFire = false;
+  boolean cargoEject = false;
+  boolean cargoIntake = false;
 
   /* Constants for the encoder values for required positions */
 
@@ -119,88 +204,10 @@ public class Robot extends TimedRobot
   final double liftCargoPickupPosition = 0;
   final double wristCargoPickupPosition = 0;
   
-  //Hatch level 1 positions
-  final double liftHatchLevel1_Position = 0;
-  final double wristHatchLevel1_Position = 0;
+  // Hatch and Cargo scoring wrist positions
+  final double wristHatchLevel_Position = 0;
+  final double wristCargoLevel_Position = 0;
 
-  //Hatch level 2 positions
-  final double liftHatchLevel2_Position = 0;
-  final double wristHatchLevel2_Position = 0;
-  
-  //hatch level 3 positions
-  final double liftHatchLevel3_Position = 0;
-  final double wristHatchLevel3_Position = 0;
-
-  //cargo level 1 positions
-  final double liftCargoLevel1_Position = 0;
-  final double wristCargoLevel1_Position = 0;
-
-  //Cargo level 2 positions
-  final double liftCargoLevel2_Position = 0;
-  final double wristCargoLevel2_Position = 0;
-
-  //Cargo level 3 positions
-  final double liftCargoLevel3_Position = 0;
-  final double wristCargoLevel3_Position = 0;
-
-  /* Limit Switches */
-  boolean liftLimitSwitch = false;
-  boolean wristLimitSwitch = false;
-
-/* Joystick 1 Control variables */
-  Joystick joy1 = new Joystick(0);
-  boolean slowdown = false;
-  double slowmodifer = 1.0;
-  boolean clear = false;
-
-  Joystick joy2 = new Joystick(1);
-
-  //Controls
-  boolean joy1buttonA = false;
-  boolean joy1buttonAPressed = false;
-  boolean joy1buttonB = false;
-  boolean joy1buttonBPressed = false;
-  boolean joy1buttonX = false;
-  boolean joy1buttonXPressed = false;
-  boolean joy1buttonY = false;
-  boolean joy1buttonYPressed = false;
-  boolean joy1buttonLeftBumper = false;
-  boolean joy1buttonLeftBumperPressed = false;
-  boolean joy1buttonRightBumper = false;
-  boolean joy1buttonRightBumperPressed = false;
-  boolean joy1buttonBack = false;
-  boolean joy1buttonBackPressed = false;
-  boolean joy1buttonStart = false;
-  boolean joy1buttonStartPressed = false;
-  double joy1AxisLeftStickX = 0;
-  double joy1AxisLeftStickY = 0;
-  double joy1AxisLeftTrigger = 0;
-  double joy1AxisRightTrigger = 0;
-  double joy1AxisRightStickX = 0;
-  double joy1AxisRighttStickY = 0;
-
-  boolean joy2buttonA = false;
-  boolean joy2buttonAPressed = false;
-  boolean joy2buttonB = false;
-  boolean joy2buttonBPressed = false;
-  boolean joy2buttonX = false;
-  boolean joy2buttonXPressed = false;
-  boolean joy2buttonY = false;
-  boolean joy2buttonYPressed = false;
-  boolean joy2buttonLeftBumper = false;
-  boolean joy2buttonLeftBumperPressed = false;
-  boolean joy2buttonRightBumper = false;
-  boolean joy2buttonRightBumperPressed = false;
-  boolean joy2buttonBack = false;
-  boolean joy2buttonBackPressed = false;
-  boolean joy2buttonStart = false;
-  boolean joy2buttonStartPressed = false;
-  double joy2AxisLeftStickX = 0;
-  double joy2AxisLeftStickY = 0;
-  double joy2AxisLeftTrigger = 0;
-  double joy2AxisRightTrigger = 0;
-  double joy2AxisRightStickX = 0;
-  double joy2AxisRighttStickY = 0;
 
 /* Color Sensor API Variables */
   final int CMD = 0x80;
@@ -227,13 +234,22 @@ public class Robot extends TimedRobot
   I2C colorSensor = new I2C(I2C.Port.kOnboard, 0x39);
 
 // Everything Else
+  //Instantiate the navx-mxp
   AHRS ahrs = new AHRS(SerialPort.Port.kUSB1);
   double heading = 0;
 
-  AnalogInput sensorL = new AnalogInput(0);
-  AnalogInput sensorR = new AnalogInput(1);
+  /* Check all IDs */
+  AnalogInput leftUltrasonic = new AnalogInput(0);
+  AnalogInput rightUltrasonic = new AnalogInput(1);
 
-  WPI_TalonSRX talonFR = new WPI_TalonSRX(2);
+  DigitalInput firstUpperLiftSwitch = new DigitalInput(6);
+  DigitalInput secondUpperLftSwitch= new DigitalInput(5);
+  DigitalInput bottomLiftSwitch = new DigitalInput(7);
+  DigitalInput insideFrameWristSwitch = new DigitalInput(4);
+  DigitalInput climbLSwitch = new DigitalInput(3);
+  DigitalInput climbRSwitch = new DigitalInput(0);
+
+  WPI_TalonSRX talonFR = new WPI_TalonSRX(0);
   WPI_TalonSRX talonBR = new WPI_TalonSRX(3);
 
   WPI_TalonSRX talonFL = new WPI_TalonSRX(15);
@@ -245,22 +261,27 @@ public class Robot extends TimedRobot
   WPI_TalonSRX climbL = new WPI_TalonSRX(12);
   WPI_TalonSRX climbR = new WPI_TalonSRX(1);
 
-  WPI_TalonSRX WclimbL = new WPI_TalonSRX(8);
-  WPI_TalonSRX WclimbR = new WPI_TalonSRX(7);
+  WPI_TalonSRX WclimbL = new WPI_TalonSRX(2);
+  WPI_TalonSRX WclimbR = new WPI_TalonSRX(1);
+
+  WPI_VictorSPX leftCargoIntake = new WPI_VictorSPX(6);
+  WPI_VictorSPX rightCargoIntake = new WPI_VictorSPX(10);
 
   MecanumDrive mecdrive = new MecanumDrive(talonFL, talonBL, talonFR, talonBR);
   
   Compressor compressor = new Compressor(0);
-  Solenoid ejectorSolenoid = new Solenoid(4);
-  //DoubleSolenoid Solenoid2 = new DoubleSolenoid(0, 2);
+ // Solenoid ejectorSolenoid = new Solenoid(4);
+  Solenoid ejectorSolenoid = new Solenoid(6);
+  DoubleSolenoid Solenoid2 = new DoubleSolenoid(4, 5);
 // ----------------------------------------------------------------------------------------
   @Override
   public void robotInit()
   {
+      /* Limit Switches */
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
-
+    
     /* Initialize and Configure Cameras */
     UsbCamera camera1 = CameraServer.getInstance().startAutomaticCapture(0);
     camera1.setResolution(640, 400);
@@ -275,17 +296,7 @@ public class Robot extends TimedRobot
     colorSensor.write(CMD | 0x01, (int) (256-integrationTime/2.38));
     colorSensor.write(CMD | 0x0E, 0b1111);
 
- /* 
-    motor.setSensorPhase(true);
-    motor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
-    motor.config_kP(0, 0.01, 30);
-    motor.config_kI(0, 0.25, 30);
-    motor.config_kD(0, 0.015, 30);
-    motor.config_kF(0, 0.1, 30);
-    motor.configClosedLoopPeriod(0, 1, 30);
-    motor.configClearPositionOnQuadIdx(clear, 20);
-  */
-
+    // Lift PID Configuration
     liftMotor.setSensorPhase(true);
     liftMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
     liftMotor.config_kP(0, 0.01, 30);
@@ -295,13 +306,31 @@ public class Robot extends TimedRobot
     liftMotor.configClosedLoopPeriod(0, 1, 30);
     liftMotor.configClearPositionOnQuadIdx(clear, 20);
 
-    /* Drivetrain Ramping */
+    // Climb Left PID Configuration
+    climbL.setSensorPhase(true);
+    climbL.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
+    climbL.config_kP(0, 0.01, 30);
+    climbL.config_kI(0, 0.25, 30);
+    climbL.config_kD(0, 0.015, 30);
+    climbL.config_kF(0, 0.1, 30);
+    climbL.configClosedLoopPeriod(0, 1, 30);
+    climbL.configClearPositionOnQuadIdx(clear, 20);
+
+    // Climb Right PID Configuration
+    climbR.setSensorPhase(true);
+    climbR.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder);
+    climbR.config_kP(0, 0.01, 30);
+    climbR.config_kI(0, 0.25, 30);
+    climbR.config_kD(0, 0.015, 30);
+    climbR.config_kF(0, 0.1, 30);
+    climbR.configClosedLoopPeriod(0, 1, 30);
+    climbR.configClearPositionOnQuadIdx(clear, 20);
+
     talonFR.configOpenloopRamp(0.25, 20);
     talonFL.configOpenloopRamp(0.25, 20);
     talonBL.configOpenloopRamp(0.25, 20);
-    talonBR.configOpenloopRamp(0.25, 20);
-
-   //NavX
+    talonBR.configOpenloopRamp(0.25, 20); 
+  
    try
    {
      ahrs = new AHRS(SerialPort.Port.kUSB1);
@@ -315,52 +344,6 @@ public class Robot extends TimedRobot
   @Override
   public void robotPeriodic()
   {
-
-    
-
-    /*center = joy2.getRawButton(5);
-    slowdown = joy1.getRawButton(1);
-    lineup = joy1.getRawButton(2);
-    gyromove = joy1.getRawButton(3);
-    liftMotor.set(joy2.getRawAxis(1));
-    wristMotor.set(joy2.getRawAxis(5));*/
-
-
-
-    /* Deadzone Logic */
-    //Potentially replace with setDeadBand()
-    //Potentially causes problems when we do not need deadband
-    //mecdrive.setDeadband(0.2);
-   /* if (joy2.getRawAxis(0) > deadzone || joy2.getRawAxis(0) < -deadzone)
-    {
-      xaxis = joy2.getRawAxis(0);
-    }
-    else
-    {
-      xaxis = 0;
-    }
-    if (joy2.getRawAxis(1) > deadzone || joy2.getRawAxis(1) < -deadzone)
-    {
-      yaxis = joy2.getRawAxis(1);
-    }
-    else
-    {
-      yaxis = 0;
-    }
-    if (joy1.getRawAxis(4) > deadzone || joy1.getRawAxis(4) < -deadzone)
-    {
-      rotation = joy1.getRawAxis(4);
-    }
-    else
-    {
-      rotation = 0;
-    } */
-
-    /*
-    position = motor.getSelectedSensorPosition();
-    velocity = motor.getSelectedSensorVelocity();
-    */
-
     
   }
   // ----------------------------------------------------------------------------------------
@@ -381,7 +364,7 @@ public class Robot extends TimedRobot
         break;
       case kDefaultAuto:
       default:
-
+        mainCode();
         break;
     }
   }
@@ -389,186 +372,251 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic()
   {
-    //Smart dashboard stuff
+    mainCode();
+  }
+  public void mainCode()
+  {
+    // SmartDashboard Printing and Sensor Configuration
+    
+    SmartDashboard.putNumber("alphavalue", alpha);
+
+    USSLout = (int) (leftUltrasonic.getAverageVoltage() * 147);
+    USSRout = (int) (rightUltrasonic.getAverageVoltage() * 147);
+
+    SmartDashboard.putNumber("Ultrasonic L", USSLout);
+    SmartDashboard.putNumber("Ultrasonic R", USSRout);
     SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
     SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
+
+    // SmartDashboard Printing
     SmartDashboard.putNumber("alphavalue", alpha);
 
     SmartDashboard.putBoolean("slowmode", slowdown);
-    SmartDashboard.putBoolean("lineup", lineup);
+    //SmartDashboard.putBoolean("lineup", lineup);
 
     SmartDashboard.putNumber("Yaw", heading);
     SmartDashboard.putBoolean("is connected", ahrs.isConnected());
     SmartDashboard.putNumber("XDisp", ahrs.getDisplacementX());
     SmartDashboard.putNumber("YDisp", ahrs.getDisplacementY());
     
-    SmartDashboard.putNumber("Ultrasonic L", USSLout);
-    SmartDashboard.putNumber("Ultrasonic R", USSRout);
-
-    SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
-    SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
-
-    //sensors
     heading = ahrs.getAngle();
-    USSLout = (int) (sensorL.getAverageVoltage() * 147);
-    USSRout = (int) (sensorR.getAverageVoltage() * 147);
     alpha = readAlphaIntensity();
 
-    //These have to be done here; otherwise, some "pressed" methods will reset in robotPeriodic before a new teleop loop.
-    joy1buttonA = joy1.getRawButton(1);
-    joy1buttonAPressed = joy1.getRawButtonPressed(1);
-    joy1buttonB = joy1.getRawButton(2);
-    joy1buttonBPressed = joy1.getRawButtonPressed(2);
-    joy1buttonX = joy1.getRawButton(3);
-    joy1buttonXPressed = joy1.getRawButtonPressed(3);
-    joy1buttonY = joy1.getRawButton(4);
-    joy1buttonYPressed = joy1.getRawButtonPressed(4);
-    joy1buttonLeftBumper = joy1.getRawButton(5);
-    joy1buttonLeftBumperPressed = joy1.getRawButtonPressed(5);
-    joy1buttonRightBumper = joy1.getRawButton(6);
-    joy1buttonRightBumperPressed = joy1.getRawButtonPressed(6);
-    joy1buttonBack = joy1.getRawButton(7);
-    joy1buttonBackPressed = joy1.getRawButtonPressed(7);
-    joy1buttonStart = joy1.getRawButton(8);
-    joy1buttonStartPressed = joy1.getRawButtonPressed(8);
-    joy1AxisLeftStickX = joy1.getRawAxis(0);
-    joy1AxisLeftStickY = joy1.getRawAxis(1);
-    joy1AxisLeftTrigger = joy1.getRawAxis(2);
-    joy1AxisRightTrigger = joy1.getRawAxis(3);
-    joy1AxisRightStickX = joy1.getRawAxis(4);
-    joy1AxisRighttStickY = joy1.getRawAxis(5); 
+    // Drive Buttons and Axes
+    driveJoybuttonA = driveJoy.getRawButton(1);
+    driveJoybuttonAPressed = driveJoy.getRawButtonPressed(1);
 
-    joy2buttonA = joy2.getRawButton(1);
-    joy2buttonAPressed = joy2.getRawButtonPressed(1);
-    joy2buttonB = joy2.getRawButton(2);
-    joy2buttonBPressed = joy2.getRawButtonPressed(2);
-    joy2buttonX = joy2.getRawButton(3);
-    joy2buttonXPressed = joy2.getRawButtonPressed(3);
-    joy2buttonY = joy2.getRawButton(4);
-    joy2buttonYPressed = joy2.getRawButtonPressed(4);
-    joy2buttonLeftBumper = joy2.getRawButton(5);
-    joy2buttonLeftBumperPressed = joy2.getRawButtonPressed(5);
-    joy2buttonRightBumper = joy2.getRawButton(6);
-    joy2buttonRightBumperPressed = joy2.getRawButtonPressed(6);
-    joy2buttonBack = joy2.getRawButton(7);
-    joy2buttonBackPressed = joy2.getRawButtonPressed(7);
-    joy2buttonStart = joy2.getRawButton(8);
-    joy2buttonStartPressed = joy2.getRawButtonPressed(8);
-    joy2AxisLeftStickX = joy2.getRawAxis(0);
-    joy2AxisLeftStickY = joy2.getRawAxis(1);
-    joy2AxisLeftTrigger = joy2.getRawAxis(2);
-    joy2AxisRightTrigger = joy2.getRawAxis(3);
-    joy2AxisRightStickX = joy2.getRawAxis(4);
-    joy2AxisRighttStickY = joy2.getRawAxis(5); 
+    driveJoybuttonB = driveJoy.getRawButton(2);
+    driveJoybuttonBPressed = driveJoy.getRawButtonPressed(2);
 
+    driveJoybuttonX = driveJoy.getRawButton(3);
+    driveJoybuttonXPressed = driveJoy.getRawButtonPressed(3);
 
-    /* Pnumatics Logic */
-    /* if(joy2.getRawButton(1))
+    driveJoybuttonY = driveJoy.getRawButton(4);
+    driveJoybuttonYPressed = driveJoy.getRawButtonPressed(4);
+
+    lineFollower_Left = driveJoy.getRawButton(5);
+    driveJoybuttonLeftBumperPressed = driveJoy.getRawButtonPressed(5);
+
+    lineFollower_Right = driveJoy.getRawButton(6);
+    driveJoybuttonRightBumperPressed = driveJoy.getRawButtonPressed(6);
+
+    driveJoybuttonBack = driveJoy.getRawButton(7);
+    driveJoybuttonBackPressed = driveJoy.getRawButtonPressed(7);
+
+    driveJoybuttonStart = driveJoy.getRawButton(8);
+    driveJoybuttonStartPressed = driveJoy.getRawButtonPressed(8);
+
+    driveJoyAxisLeftStickX = driveJoy.getRawAxis(0);
+    driveJoyAxisLeftStickY = driveJoy.getRawAxis(1);
+    driveJoyAxisLeftTrigger = driveJoy.getRawAxis(2);
+    driveJoyAxisRightTrigger = driveJoy.getRawAxis(3);
+    driveJoyAxisRightStickX = driveJoy.getRawAxis(4);
+    driveJoyAxisRighttStickY = driveJoy.getRawAxis(5);
+
+    climb1stLevel = driveJoybuttonA;
+    climb3rdLevel = driveJoybuttonB;
+
+    // Operator Buttons and Axes
+    /*operatorJoybuttonA = operatorJoy.getRawButton(1);
+    operatorJoybuttonAPressed = operatorJoy.getRawButtonPressed(1);
+
+    operatorJoybuttonB = operatorJoy.getRawButton(2);
+    operatorJoybuttonBPressed = operatorJoy.getRawButtonPressed(2);
+
+    operatorJoybuttonX = operatorJoy.getRawButton(3);
+    operatorJoybuttonXPressed = operatorJoy.getRawButtonPressed(3);
+
+    operatorJoybuttonY = operatorJoy.getRawButton(4);
+    operatorJoybuttonYPressed = operatorJoy.getRawButtonPressed(4);
+
+    operatorJoybuttonLeftBumper = operatorJoy.getRawButton(5);
+    operatorJoybuttonLeftBumperPressed = operatorJoy.getRawButtonPressed(5);
+
+    operatorJoybuttonRightBumper = operatorJoy.getRawButton(6);
+    operatorJoybuttonRightBumperPressed = operatorJoy.getRawButtonPressed(6);
+
+    operatorJoybuttonBack = operatorJoy.getRawButton(7);
+    operatorJoybuttonBackPressed = operatorJoy.getRawButtonPressed(7);
+
+    operatorJoybuttonStart = operatorJoy.getRawButton(8);
+    operatorJoybuttonStartPressed = operatorJoy.getRawButtonPressed(8);
+
+    operatorJoyAxisLeftStickX = operatorJoy.getRawAxis(0);
+    operatorJoyAxisLeftStickY = operatorJoy.getRawAxis(1);
+    operatorJoyAxisLeftTrigger = operatorJoy.getRawAxis(2);
+    operatorJoyAxisRightTrigger = operatorJoy.getRawAxis(3);
+    operatorJoyAxisRightStickX = operatorJoy.getRawAxis(4);
+    operatorJoyAxisRighttStickY = operatorJoy.getRawAxis(5); */
+
+    operator_ZAxis = operatorJoy.getRawAxis(2);
+    operatorShift = operatorJoy.getRawButton(1);
+
+    // Fire Button Logic
+    if (operator_ZAxis < 0.85 && operator_ZAxis  > -0.85)
     {
-    ejectorSolenoid.set(DoubleSolenoid.Value.kForward);
+      pneumaticsFire = operatorJoy.getRawButton(2);
+      cargoIntake = false;
+      cargoEject = false;
     }
-    else if(joy2.getRawButton(2))
+    else if (operator_ZAxis >= 0.85 )
     {
-    ejectorSolenoid.set(DoubleSolenoid.Value.kReverse);
+      cargoEject = operatorJoy.getRawButton(2);
+      cargoIntake = false;
+      pneumaticsFire = false;
     }
-    if(joy2.getRawButton(3))
+    else if (operator_ZAxis <= -0.85)
     {
-    Solenoid2.set(DoubleSolenoid.Value.kForward);
+      cargoIntake = operatorJoy.getRawButton(2);
+      cargoEject = false;
+      pneumaticsFire = false;
     }
-    else if(joy2.getRawButton(4))
-    {
-    Solenoid2.set(DoubleSolenoid.Value.kReverse);
-    } */
 
-     //drive state switcher
-     if (driveState.equals("center"))
-     {
-       if ((centerDirection.equals("left") && !joy1buttonX) || (centerDirection.equals("right") && !joy1buttonB) || centerState.equals("stop"))
-       {
-         tempXAxis = 0;
-         tempYAxis = 0;
-         tempRotation = 0;
-         mecdrive.driveCartesian(0,0,0);
-         lineupState = "start";
-         centerState = "start";
-         driveState = "normal";
-       }
-     }
-     else if (driveState.equals("lineup"))
-     {
-       if (!joy1buttonY || lineupState.equals("stop"))
-       {
-         tempXAxis = 0;
-         tempYAxis = 0;
-         tempRotation = 0;
-         mecdrive.driveCartesian(0,0,0);
-         driveState = "normal";
-         lineupState = "start";
-       }
-     }
-     //no exit conditions and operations
+    // Reset Gyro Logic
+    if (driveJoybuttonX)
+    {
+      ahrs.reset();
+    }
+
+    // Operator Shift Button Logic
+    if (operatorShift)
+    {
+      operatorCargoLevel_1 = operatorJoy.getRawButton(4);
+      operatorCargoLevel_2 = operatorJoy.getRawButton(3);
+      operatorCargoLevel_3 = operatorJoy.getRawButton(5);
+
+      operatorHatchLevel_1 = false;
+      operatorHatchLevel_2 = false;
+      operatorHatchLevel_3 = false;
+    }
     else
     {
-      if (joy1buttonX)//X
-      {
-        driveState = "center";
-        centerDirection = "left";
-      }
-      else if (joy1buttonB)//B
-      {
-        driveState = "center";
-        centerDirection = "right";
-      }
-      else if (joy1buttonY)//Y
-      {
-        driveState = "lineup";
-      }
-      /*
-      placeholders
-      */
-      else if (joy1buttonA)//A, placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 1;//back right rocket
-      }
-      else if (false)//placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 2;//right rocket
-      }
-      else if (false)//placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 3;//front right rocket
-      }
-      else if (false)//placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 4;//front
-      }
-      else if (false)//placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 5;//front left rocket
-      }
-      else if (false)//placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 6;//left rocket
-      }
-      else if (false)//placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 7;//back left rocket
-      }
-      else if (false)//placeholder for potential touch screen control
-      {
-        driveState = "fixedOrientation";
-        gyroDirection = 8;//loading station
-      }
+      operatorHatchLevel_1 = operatorJoy.getRawButton(4);
+      operatorHatchLevel_2 = operatorJoy.getRawButton(3);
+      operatorHatchLevel_3 = operatorJoy.getRawButton(5);
+
+      operatorCargoLevel_1 = false;
+      operatorCargoLevel_2 = false;
+      operatorCargoLevel_3 = false;
     }
 
-    switch (driveState)
+  // Cargo Eject Logic
+    if (cargoEject)
+    {
+      leftCargoIntake.set(1.0);
+      rightCargoIntake.set(-1.0);
+    }
+    else if (cargoIntake)
+    {
+      leftCargoIntake.set(-1.0);
+      rightCargoIntake.set(1.0);
+    }
+    else
+    {
+      leftCargoIntake.set(0);
+      rightCargoIntake.set(0);
+    }
+
+  // Pneumatics Fire Logic
+    if(pneumaticsFire)
+    {
+      ejectorSolenoid.set(true);
+     // Solenoid2.set(DoubleSolenoid.Value.kForward);
+    }
+    else
+    {
+      ejectorSolenoid.set(false);
+     // Solenoid2.set(DoubleSolenoid.Value.kReverse);
+    }
+
+  // Drive State Logic
+    if (driveState.equals("center"))
+    {
+      if ((centerDirection.equals("left") && !lineFollower_Left) || (centerDirection.equals("right") && !lineFollower_Right) || centerState.equals("stop"))
+      {
+        tempXAxis = 0;
+        tempYAxis = 0;
+        tempRotation = 0;
+        mecdrive.driveCartesian(0,0,0);
+        lineupState = "start";
+        centerState = "start";
+        driveState = "normal";
+      }
+    }
+    else if (driveState.equals("lineup"))
+    {
+      if (!driveJoybuttonY || lineupState.equals("stop"))
+      {
+        tempXAxis = 0;
+        tempYAxis = 0;
+        tempRotation = 0;
+        mecdrive.driveCartesian(0,0,0);
+        driveState = "normal";
+        lineupState = "start";
+      }
+    }
+    else if (driveState.equals("climb"))
+    {
+      if ((climbLevel.equals("1") && !climb1stLevel) || (climbLevel.equals("3") && !climb3rdLevel) || climbState.equals("stop"))
+      {
+        tempXAxis = 0;
+        tempYAxis = 0;
+        tempRotation = 0;
+        mecdrive.driveCartesian(0,0,0);
+        driveState = "normal";
+        climbState = "start";
+        operatorState = "auto";
+      }
+    }
+  else
+  {
+    if (lineFollower_Left) //X
+    {
+      driveState = "center";
+      centerDirection = "left";
+    }
+    else if (lineFollower_Right)
+    {
+      driveState = "center";
+      centerDirection = "right";
+    }
+    else if (driveJoybuttonY) //Y
+    {
+      driveState = "lineup";
+    }
+    else if (climb1stLevel)
+    {
+      driveState = "climb";
+      climbLevel = "1";
+    }
+    else if (climb3rdLevel)
+    {
+      driveState = "climb";
+      climbLevel = "3";
+    }
+  }
+
+  switch (driveState)
     {
       //normal drive state
       case "normal":
@@ -591,40 +639,51 @@ public class Robot extends TimedRobot
         break;
       }//end of lineup
 
-      //gyro fixed orientation state
-      case "fixedOrientation":
+      //climb state
+      case "climb":
       {
-        driveFixedOrientation();
+        driveClimb();
         break;
-      }
+      }//end of climb
+
     }//end of switch
 
     //Operator State Switcher
-    if (joy2AxisLeftStickX > 0.2 | joy2AxisLeftStickY > 0.2 | joy2AxisLeftTrigger > 0.2 | joy2AxisRightTrigger > 0.2)
+    if (manualON)
     {
       operatorState = "manual";
     }
-    else if (hatchLevel1Button)
+   /* else if (operatorHatchLevel_1)
     {
       operatorState = "auto";
       hatchCargoPosition = "hatchLevel1";
     }
-    else if (hatchLevel2Button)
+    else if (operatorHatchLevel_2)
     {
       operatorState = "auto";
       hatchCargoPosition = "hatchLevel2";
     }
-    else if (hatchLevel3Button)
+    else if (operatorHatchLevel_3)
     {
       operatorState = "auto";
       hatchCargoPosition = "hatchLevel3";
     }
-    else if (cargoLevel1Button)
+    else if (operatorCargoLevel_1)
     {
       operatorState = "auto";
       hatchCargoPosition = "cargoLevel1";
     }
-    else if (startingPositionButton)
+    else if (operatorCargoLevel_2)
+    {
+      operatorState = "auto";
+      hatchCargoPosition = "cargoLevel2";
+    }
+    else if (operatorCargoLevel_3)
+    {
+      operatorState = "auto";
+      hatchCargoPosition = "cargoLevel3";
+    }
+    /*else if (startingPositionButton)
     {
       operatorState = "auto";
       hatchCargoPosition = "startingPosition";
@@ -632,19 +691,19 @@ public class Robot extends TimedRobot
     else if (hatchingPositionButton)
     {
       operatorState = "auto";
-      hatchCargoPosition = "ahtchPickupPosition";
+      hatchCargoPosition = "hatchPickupPosition";
     }
     else if (hatchFloorPositionButton)
     {
       operatorState = "auto";
-      hatchCargoPosition = "hatchingFloorPickupPosition";
+      hatchCargoPosition = "hatchFloorPickupPosition";
     }
     else if (cargoPositionButton)
     {
       operatorState = "auto";
       hatchCargoPosition = "cargoPickupPosition";
     }
-
+*/
     switch (operatorState)
     {
       case "manual":
@@ -658,6 +717,11 @@ public class Robot extends TimedRobot
         operatorAuto();
         break;
       }
+
+      case "stop":
+      {
+        break;
+      }
     }
   }
     // ----------------------------------------------------------------------------------------
@@ -666,29 +730,10 @@ public class Robot extends TimedRobot
   {
 
   }
-  /* Ultrasonic Lineup Function */
-   public void USCorrection()
-  {
-    lineUS = ((USSLout - USSRout) / 500);
-
-    if (Math.abs(USSLout - USSRout) <= 2)
-    {
-      rotation = 0;
-      yaxis = -0.20;
-      ahrs.reset();
-    }
-    else if (USSLout > USSRout)
-    {
-     rotation = 0.175 + lineUS;
-    }
-    else if (USSLout < USSRout)
-    {
-      rotation = -0.175 + lineUS;
-    }
-  }
- 
   public short readAlphaIntensity()
   {
+
+    // Light Sensor Configuration
     buffer.clear();
     colorSensor.read(CMD | MULTI_BYTE_BIT | CDATA_REGISTER, 10, buffer);
     short alpha_value = buffer.getShort(0);
@@ -696,8 +741,10 @@ public class Robot extends TimedRobot
     return alpha_value;
   }
 
+  // Drive Code may be Redundant
   public void driveNormal()
   {
+
     mecdrive.setDeadband(0.2);
     if (slowdown)
     {
@@ -707,74 +754,21 @@ public class Robot extends TimedRobot
     {
       slowmodifer = 1.0;
     }
-
-    driveXAxis = joy1AxisLeftStickX;
-    driveYAxis = joy1AxisLeftStickY;
-    driveRotation = joy1AxisRightStickX;
-    mecdrive.driveCartesian(driveXAxis * slowmodifer, -driveYAxis * slowmodifer, driveRotation * slowmodifer);
-  }
-
-  public void driveFixedOrientation()
-  {
-    mecdrive.setDeadband(0.2);
-    if (slowdown)
+    driveXAxis = driveJoyAxisLeftStickX;
+    driveYAxis = driveJoyAxisLeftStickY;
+    driveRotation = driveJoyAxisRightStickX;
+    
+    if (fieldAssistedDrive)
     {
-      slowmodifer = 0.5;
+      mecdrive.driveCartesian(driveXAxis * slowmodifer, -driveYAxis * slowmodifer, driveRotation * slowmodifer, ahrs.getAngle());
     }
     else
     {
-      slowmodifer = 1.0;
+      mecdrive.driveCartesian(driveXAxis * slowmodifer, -driveYAxis * slowmodifer, driveRotation * slowmodifer);
     }
-
-    driveXAxis = joy1AxisLeftStickX;
-    driveYAxis = joy1AxisLeftStickY;
-    double error = 0;
-    double angle = 0;
-    double kp = 0.03;
-    if (gyroDirection == 1)
-    {
-      angle = 61.25;
-    }
-    else if (gyroDirection == 2)
-    {
-      angle = 0;
-    }
-    else if (gyroDirection == 3)
-    {
-      angle = 298.75;
-    }
-    else if (gyroDirection == 4)
-    {
-      angle = 90;
-    }
-    else if (gyroDirection == 5)
-    {
-      angle = 241.25;
-    }
-    else if (gyroDirection == 6)
-    {
-      angle = 180;
-    }
-    else if (gyroDirection == 7)
-    {
-      angle = 118.75;
-    }
-    else if (gyroDirection == 8)
-    {
-      angle = 270;
-    }
-
-    error = heading - angle;
-    while (error >= 180)
-    {
-      error -= 360;
-    }
-    while (error < -180)//Must be < not <=
-    {
-      error += 360;
-    }
-    mecdrive.driveCartesian(driveXAxis * slowmodifer, -driveYAxis * slowmodifer, -error*kp * slowmodifer, error);
   }
+
+  
 
   public void driveCenter()
   {
@@ -795,7 +789,7 @@ public class Robot extends TimedRobot
       {
         if (alpha >= threshold)
         {
-          alphaFirst = alpha;
+          //alphaFirst = alpha;
           centerState = "reverse";
         }
   
@@ -914,7 +908,7 @@ public class Robot extends TimedRobot
       //lineup using ultrasonic sensors
       case "drive_in":
       {
-        if (USSLout <= 11)
+        if (USSLout <= 12)
         {
           tempXAxis = 0;
           tempYAxis = 0;
@@ -945,6 +939,7 @@ public class Robot extends TimedRobot
       {
         if (Math.abs(USSLout - USSRout) <= 2)
         {
+          ahrs.reset();
           mecdrive.driveCartesian(0,0,0);
           lineupState = "stop";
         }
@@ -972,66 +967,376 @@ public class Robot extends TimedRobot
     mecdrive.driveCartesian(tempXAxis,tempYAxis,tempRotation);
   }//end of driveLineup()
 
+  public void trackedStilts(double baseSpeed)
+  {
+    double leftStilt = climbL.getSelectedSensorPosition();
+    double rightStilt = climbR.getSelectedSensorPosition();
+    double stiltError = Math.abs(leftStilt - rightStilt);
+
+    // --- Change Multiplier
+    double stiltThreshold = 100;
+    
+    double multiplier = stiltError / (stiltThreshold / baseSpeed);
+
+    if ((stiltError >= stiltThreshold) && (leftStilt < rightStilt))
+    {
+      moveStiltsSafeAuto(baseSpeed, 0);
+    }
+    else if ((stiltError >= stiltThreshold) && (leftStilt > rightStilt))
+    {
+      moveStiltsSafeAuto(0, baseSpeed);
+    }
+    else if ((stiltError < stiltThreshold) && (leftStilt <= rightStilt))
+    {
+      moveStiltsSafeAuto(baseSpeed, baseSpeed - multiplier);
+    }
+    else if ((stiltError < stiltThreshold) && (leftStilt > rightStilt))
+    {
+      moveStiltsSafeAuto(baseSpeed - multiplier, baseSpeed);
+    }
+  }
+
+  public void trackedClimb_to_Lift(double baseSpeed)
+  {
+    double lift = liftMotor.getSelectedSensorPosition();
+    double leftStilt = climbL.getSelectedSensorPosition();
+    double rightStilt = climbR.getSelectedSensorPosition();
+    double maximumStiltPosition = Math.max(leftStilt, rightStilt);
+    double liftStiltError = Math.abs(lift - Math.max(leftStilt, rightStilt));
+    double liftThreshold = 100;
+    double multiplier = liftStiltError / (liftThreshold / baseSpeed);
+
+    if ((liftStiltError < liftThreshold) && (lift >= -maximumStiltPosition))
+    {
+      liftMotorSafe(baseSpeed - multiplier);
+    }
+    else if ((liftStiltError < liftThreshold) && (lift < -maximumStiltPosition))
+    {
+      liftMotorSafe(baseSpeed + multiplier);
+    }
+  }
+
+  public void driveClimb()
+  {
+    switch (climbState)
+    {
+      //start climb
+      case "start":
+      {
+        if ((liftMotor.getSelectedSensorPosition() < 2050) && (wristMotor.getSelectedSensorPosition() > 1950))
+        {
+          climbState = "up";
+        }
+
+        else
+        {
+          operatorState = "stop";
+          if (climbLevel.equals("1"))
+          {
+            wristMotor.set(ControlMode.Position, 2000);//all the way down
+            liftMotor.set(ControlMode.Position, 1000);//coming down from above
+          }
+          else if (climbLevel.equals("3"))
+          {
+            wristMotor.set(ControlMode.Position, 2000);//all the way down
+            liftMotor.set(ControlMode.Position, 2000);//coming down from above
+          }
+        }
+
+        break;
+      }
+
+      case "up":
+      {
+        if (climbLevel.equals("1"))
+        {
+          if ((liftMotor.getSelectedSensorPosition() < 100) || (climbL.getSelectedSensorPosition() > 2950) || (climbR.getSelectedSensorPosition() > 2950)) 
+          {
+            wristMotor.set(ControlMode.Position, 2000);//all the way down
+            liftMotor.set(ControlMode.Position, 50);
+            climbL.set(ControlMode.Position, 3000);
+            climbR.set(ControlMode.Position, 3000);
+            climbState = "forward1_start";
+          }
+  
+          else
+          {
+            wristMotor.set(ControlMode.Position, 2000);//all the way down
+            trackedStilts(0.8);
+            trackedClimb_to_Lift(0.4);
+          }
+        }
+        else if (climbLevel.equals("3"))
+        {
+          if ((liftMotor.getSelectedSensorPosition() < 100) || (climbL.getSelectedSensorPosition() > 4950) || (climbR.getSelectedSensorPosition() > 4950)) 
+         {
+            wristMotor.set(ControlMode.Position, 2000);//all the way down
+            liftMotor.set(ControlMode.Position, 50);
+            climbL.set(ControlMode.Position, 5000);
+            climbR.set(ControlMode.Position, 5000);
+            climbState = "forward1_start";
+          }
+
+          else
+          {
+            wristMotor.set(ControlMode.Position, 2000);//all the way down
+            trackedStilts(0.8);
+            trackedClimb_to_Lift(0.4);
+          }
+        }
+
+        break;
+      }
+
+      case "forward1_start":
+      {
+        timer.reset();
+        timer.start();
+        climbState = "forward1_run";
+        break;
+      }
+
+      case "forward1_run":
+      {
+        if (timer.get() > 1)
+        {
+          climbState = "forward2_start";
+        }
+
+        else
+        {
+          if (climbLevel.equals("1"))
+          {
+            wristMotor.set(ControlMode.Position, 2000);//all the way down
+            liftMotor.set(ControlMode.Position, 50);
+            climbL.set(ControlMode.Position, 3000);
+            climbR.set(ControlMode.Position, 3000);
+            mecdrive.driveCartesian(0, 0.4, 0);
+          }
+          else if (climbLevel.equals("3"))
+          {
+            wristMotor.set(ControlMode.Position, 2000);//all the way down
+            liftMotor.set(ControlMode.Position, 50);
+            climbL.set(ControlMode.Position, 5000);
+            climbR.set(ControlMode.Position, 5000);
+            mecdrive.driveCartesian(0, 0.4, 0);
+          }
+          
+        }
+
+        break;
+      }
+
+      case "forward2_start":
+      {
+        timer.reset();
+        timer.start();
+        climbState = "forward2_run";
+        break;
+      }
+
+      case "forward2_run":
+      {
+        if (timer.get() > 1)
+        {
+          mecdrive.driveCartesian(0, 0, 0);
+          climbState = "retract_stilts";
+        }
+
+        else
+        {
+          if (climbLevel.equals("1"))
+          {
+            wristMotor.set(ControlMode.Position, 100);//up
+            liftMotor.set(ControlMode.Position, 500);//up a little
+            climbL.set(ControlMode.Position, 5000);
+            climbR.set(ControlMode.Position, 5000);
+            mecdrive.driveCartesian(0, 0.4, 0);
+          }
+          else if (climbLevel.equals("3"))
+          {
+            wristMotor.set(ControlMode.Position, 100);//up
+            liftMotor.set(ControlMode.Position, 500);//up a little
+            climbL.set(ControlMode.Position, 3000);
+            climbR.set(ControlMode.Position, 3000);
+            mecdrive.driveCartesian(0, 0.4, 0);
+          }
+        }
+
+        break;
+      }
+
+      case "retract_stilts":
+      {
+        if ((climbL.getSelectedSensorPosition() < 100) || (climbR.getSelectedSensorPosition() < 100))
+        {
+          climbL.set(ControlMode.Position, 50);
+          climbR.set(ControlMode.Position, 50);
+          climbState = "forward3_start";
+        }
+
+        else
+        {
+          wristMotor.set(ControlMode.Position, 100);//up
+          liftMotor.set(ControlMode.Position, 500);//up a little
+          trackedStilts(-0.8);
+        }
+
+        break;
+      }
+
+      case "forward3_start":
+      {
+        timer.reset();
+        timer.start();
+        climbState = "forward3_run";
+        break;
+      }
+
+      case "forward3_run":
+      {
+        if (timer.get() > 1.5)
+        {
+          mecdrive.driveCartesian(0, 0, 0);
+          climbState = "stop";
+        }
+
+        else
+        {
+          wristMotor.set(ControlMode.Position, 100);//up
+          liftMotor.set(ControlMode.Position, 500);//up a little
+          climbL.set(ControlMode.Position, 50);
+          climbR.set(ControlMode.Position, 50);
+          mecdrive.driveCartesian(0, 0.4, 0);
+        }
+
+        break;
+      }
+    }//end of switch
+
+    mecdrive.driveCartesian(tempXAxis,tempYAxis,tempRotation);
+  }//end of driveClimb()
+
+  public double linearEncoderConversion(double targetInches)
+  {
+    //The sprocked circumference is either 10 or 12.89
+    //The equation is sprocketCircumference/encoderTicksPerRevolution/gearRatio
+    return targetInches * 10/1024/3;
+  }
+
+  public void liftMotorSafe(double speed)
+  {
+    //The limits will need to be changed
+    if ( firstUpperLiftSwitch.get() == true && secondUpperLftSwitch.get() == true && speed > 0) //Upper limit
+    {
+      liftMotor.set(ControlMode.Velocity, 0);
+    }
+    else if(bottomLiftSwitch.get() == true && speed < 0) //Lower limit
+    {
+      liftMotor.set(ControlMode.Velocity, 0);
+    }
+    else // No limits hit
+    {
+      liftMotor.set(ControlMode.Velocity, speed);
+    }
+  }
+
+  public void liftMotor_to_PositionSafe(double encoderPosition)
+  {
+
+  }
+
+  public void rotateWristSafe(double speed)
+  {
+    // Limits that will need to be changed
+    if (insideFrameWristSwitch.get() == true && speed > 0) //Inside frame limit
+    {
+      wristMotor.set(ControlMode.PercentOutput, 0);
+    }
+    else if(wristMotor.getSelectedSensorPosition() == 0 && speed < 0) //Lower Limit
+    {
+      wristMotor.set(ControlMode.PercentOutput, 0);
+    }
+    else //No limits hit
+    {
+      wristMotor.set(ControlMode.PercentOutput, speed);
+    }
+  }
+
+  public void moveStiltsSafe(String direction)
+  {
+    // Use this method in operatorManual()
+    if (climbLSwitch.get() == true || climbRSwitch.get() == true)
+    {
+      climbL.set(0);
+      climbR.set(0);
+    }
+    else if (direction.equals("up"))
+    {
+      climbL.set(ControlMode.PercentOutput, 1.0);
+      climbR.set(ControlMode.PercentOutput, 1.0);
+    }
+    else if (direction.equals("down"))
+    {
+      climbL.set(ControlMode.PercentOutput, -1.0);
+      climbR.set(ControlMode.PercentOutput, -1.0);
+    }
+  }
+
+  public void moveStiltsSafeAuto(double leftSpeed, double rightSpeed)
+  {
+    // Use this method for auto climb
+    if (climbLSwitch.get() == true || climbRSwitch.get() == true)
+    {
+      climbL.set(ControlMode.Velocity, 0);
+      climbR.set(ControlMode.Velocity, 0);
+    }
+    else
+    {
+      climbL.set(ControlMode.Velocity, leftSpeed);
+      climbR.set(ControlMode.Velocity, rightSpeed);
+    }
+  }
+
   public void operatorManual()
   {
-    if (joy2buttonA == true)
+      wristMotor.set(- operatorJoy.getRawAxis(1));
+    if (operatorJoy.getRawButton(10) == true)
     {
-      climbL.set(-1.0);
-      climbR.set(-1.0);
+      moveStiltsSafe("down");
     }
-    else if (joy2buttonY == true)
+    else if (operatorJoy.getRawButton(11) == true)
     {
-      climbL.set(1.0);
-      climbR.set(1.0);
-    }
-    else if (joy2buttonB == true)
-    {
-      WclimbL.set(joy2AxisLeftTrigger);
-      WclimbR.set(joy2AxisRightTrigger);
-    }
-    else if (joy2buttonStart == true)
-    {
-      climbL.set(joy2AxisLeftTrigger);
-      climbR.set(joy2AxisRightTrigger);
-    }
-    else if (joy2buttonBack == true)
-    {
-      climbL.set(- joy2AxisLeftTrigger);
-      climbR.set(- joy2AxisRightTrigger);
+      moveStiltsSafe("up");
     }
     else
     {
       climbL.set(0);
       climbR.set(0);
+    }
+    
+    if (operatorJoy.getRawButton(8) && operatorJoy.getRawButton(9))
+    {
+      WclimbL.set(1.0);
+      WclimbR.set(1.0);
+    }
+    else
+    {
       WclimbL.set(0);
       WclimbR.set(0);
     }
   
-    if (joy2buttonX)
+    if (operatorJoy.getRawButton(6))
     {
-      ejectorSolenoid.set(true);
+      liftMotor.set(ControlMode.PercentOutput, 0.9);
+    }
+    else if (operatorJoy.getRawButton(7))
+    {
+      liftMotor.set(ControlMode.PercentOutput, -0.9);
     }
     else
     {
-      ejectorSolenoid.set(false);
-    }
-
-    //This may need to change to a different encoder position
-    if ((liftMotor.getSelectedSensorPosition() == liftHatchLevel3_Position | liftLimitSwitch == false) && disableSafetiesButton == true)
-    {
-      liftMotor.set(ControlMode.PercentOutput, joy2AxisLeftStickX);
-    }
-    else
-    {
-      liftMotor.set(ControlMode.PercentOutput, 0);
-    }
-    if (wristLimitSwitch == false | wristMotor.getSelectedSensorPosition() == wristHatchingFloorPosition)
-    {
-      wristMotor.set(ControlMode.PercentOutput, joy2AxisLeftStickY);
-    }
-    else
-    {
-      wristMotor.set(ControlMode.PercentOutput, 0);
+      liftMotor.set(ControlMode.PercentOutput, 0.0);
     }
   }
 
@@ -1042,21 +1347,21 @@ public class Robot extends TimedRobot
       case "hatchPickupPosition":
       {
         // Position for hatching and picking up from loading station
-        liftMotor.set(ControlMode.Position, liftHatchingPosition);
-        wristMotor.set(ControlMode.Position, wristHatchingPosition);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
         break;
       }
-      case "hatchPickupFloorPosition":
+      case "hatchFloorPickupPosition":
       {
         // Position for picking hatches up from the floor
-        liftMotor.set(ControlMode.Position, liftHatchingFloorPosition);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
         wristMotor.set(ControlMode.Position, wristHatchingFloorPosition);
         break;
       }
       case "cargoPickupPosition":
       {
         // Position for cargo
-        liftMotor.set(ControlMode.Position, liftCargoPickupPosition);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
         wristMotor.set(ControlMode.Position, wristCargoPickupPosition);
         break;
       }
@@ -1064,43 +1369,43 @@ public class Robot extends TimedRobot
       case "hatchLevel1":
       {
         //move until level 1 (1 ft. 7 in.)
-        liftMotor.set(ControlMode.Position, liftHatchLevel1_Position);
-        wristMotor.set(ControlMode.Position, wristHatchLevel1_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
         break;
       }
       case "hatchLevel2":
       {
         //move until level 2 (3 ft. 11 in.)
-        liftMotor.set(ControlMode.Position, liftHatchLevel2_Position);
-        wristMotor.set(ControlMode.Position, wristHatchLevel2_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
         break;
       }
       case "hatchLevel3":
       {
         //move until next level 3 (5 ft. 15 in.)
-        liftMotor.set(ControlMode.Position, liftHatchLevel3_Position);
-        wristMotor.set(ControlMode.Position, wristHatchLevel3_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
         break;
       }
       case "cargoLevel1":
       {
         //move until level 1 (2 ft. 3.5 in.)
-        liftMotor.set(ControlMode.Position, liftCargoLevel1_Position);
-        wristMotor.set(ControlMode.Position, wristCargoLevel1_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristCargoLevel_Position);
         break;
       }
       case "cargoLevel2":
       {
         //move until level 2 (4 ft. 7.5 in)
-        liftMotor.set(ControlMode.Position, liftCargoLevel2_Position);
-        wristMotor.set(ControlMode.Position, wristCargoLevel2_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristCargoLevel_Position);
         break;
       }
       case "cargoLevel3":
       {
         //move until next level 3 (6 ft. 11.5 in)
-        liftMotor.set(ControlMode.Position, liftCargoLevel3_Position);
-        wristMotor.set(ControlMode.Position, wristCargoLevel3_Position);
+        liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
+        wristMotor.set(ControlMode.Position, wristCargoLevel_Position);
         break;
       }
     }
