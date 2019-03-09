@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.drive.*;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.*;
+import edu.wpi.cscore.AxisCamera;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.*;
 import edu.wpi.first.cameraserver.CameraServer;
@@ -76,6 +77,9 @@ public class Robot extends TimedRobot
   //Color sensor error estimate
   //private int alphaFirst = 0;
 
+  //Climb
+  private double maxCorrection = 0.3;
+
   /* Automated Drive Variables */
   private double tempXAxis = 0;
   private double tempYAxis = 0;
@@ -92,7 +96,7 @@ public class Robot extends TimedRobot
   private String climbState = "start";
   private String climbLevel = "3";
   //private int gyroDirection = 4;//facing front
-  private boolean fieldAssistedDrive = true;
+  boolean fieldAssistedDrive = true;
 
   /* Operator Buttons */
   /*boolean hatchLevel1Button;
@@ -226,6 +230,8 @@ public class Robot extends TimedRobot
   final int AIEN  = 0b00010000;
   final int PIEN  = 0b00100000;
 
+  int i = 0;
+
   private final double integrationTime = 10;
   private final short threshold = 25;
   private ByteBuffer buffer = ByteBuffer.allocate(10);
@@ -235,7 +241,6 @@ public class Robot extends TimedRobot
 
 // Everything Else
   //Instantiate the navx-mxp
-  AHRS ahrs = new AHRS(SerialPort.Port.kUSB1);
   double heading = 0;
 
   /* Check all IDs */
@@ -270,9 +275,9 @@ public class Robot extends TimedRobot
   MecanumDrive mecdrive = new MecanumDrive(talonFL, talonBL, talonFR, talonBR);
   
   Compressor compressor = new Compressor(0);
- // Solenoid ejectorSolenoid = new Solenoid(4);
   Solenoid ejectorSolenoid = new Solenoid(6);
   DoubleSolenoid Solenoid2 = new DoubleSolenoid(4, 5);
+  AHRS ahrs = new AHRS(SerialPort.Port.kUSB1);
 // ----------------------------------------------------------------------------------------
   @Override
   public void robotInit()
@@ -281,14 +286,11 @@ public class Robot extends TimedRobot
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
-    
     /* Initialize and Configure Cameras */
+    AxisCamera camera2 = CameraServer.getInstance().addAxisCamera("10.20.39.11");
     UsbCamera camera1 = CameraServer.getInstance().startAutomaticCapture(0);
-    camera1.setResolution(640, 400);
-    UsbCamera camera2 = CameraServer.getInstance().startAutomaticCapture(1);
-    camera2.setResolution(640, 400);
-    camera1.setFPS(24);
-    camera2.setFPS(24);
+    camera1.setResolution(360, 240);
+    camera1.setFPS(15);
 
     // Color Sensor Startup Code
     buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -325,28 +327,12 @@ public class Robot extends TimedRobot
     climbR.config_kF(0, 0.1, 30);
     climbR.configClosedLoopPeriod(0, 1, 30);
     climbR.configClearPositionOnQuadIdx(clear, 20);
-
-    talonFR.configOpenloopRamp(0.25, 20);
-    talonFL.configOpenloopRamp(0.25, 20);
-    talonBL.configOpenloopRamp(0.25, 20);
-    talonBR.configOpenloopRamp(0.25, 20); 
-  
-   try
-   {
-     ahrs = new AHRS(SerialPort.Port.kUSB1);
-   }
-   catch(RuntimeException ex)
-   {
-     DriverStation.reportError("NavX Setup Error" + ex.getMessage(),true);
-   }
   }
 // ----------------------------------------------------------------------------------------
   @Override
   public void robotPeriodic()
   {
-    
-  }
-  // ----------------------------------------------------------------------------------------
+  }  // ----------------------------------------------------------------------------------------
   @Override
   public void autonomousInit()
   {
@@ -376,12 +362,23 @@ public class Robot extends TimedRobot
   }
   public void mainCode()
   {
+    if(i == 0)
+    {
+      i++;
+      ahrs.reset();
+    }
     // SmartDashboard Printing and Sensor Configuration
-    
     SmartDashboard.putNumber("alphavalue", alpha);
 
     USSLout = (int) (leftUltrasonic.getAverageVoltage() * 147);
     USSRout = (int) (rightUltrasonic.getAverageVoltage() * 147);
+
+    SmartDashboard.putData("wrist switch", insideFrameWristSwitch);
+    SmartDashboard.putData("First Upper Lift Switch", firstUpperLiftSwitch);
+    SmartDashboard.putData("Second Upper Lift Switch", secondUpperLftSwitch);
+    SmartDashboard.putData("Bottom Lift Switch", bottomLiftSwitch);
+    SmartDashboard.putData("CimbL LS", climbLSwitch);
+    SmartDashboard.putData("ClimbR LS", climbRSwitch);
 
     SmartDashboard.putNumber("Ultrasonic L", USSLout);
     SmartDashboard.putNumber("Ultrasonic R", USSRout);
@@ -392,12 +389,17 @@ public class Robot extends TimedRobot
     SmartDashboard.putNumber("alphavalue", alpha);
 
     SmartDashboard.putBoolean("slowmode", slowdown);
-    //SmartDashboard.putBoolean("lineup", lineup);
+    // SmartDashboard.putBoolean("lineup", lineup);
 
-    SmartDashboard.putNumber("Yaw", heading);
-    SmartDashboard.putBoolean("is connected", ahrs.isConnected());
+    SmartDashboard.putNumber("Gyro Angle", ahrs.getAngle());
+    SmartDashboard.putBoolean("Connection Gyro", ahrs.isConnected());
+   // SmartDashboard.putNumber("Yaw", heading);
     SmartDashboard.putNumber("XDisp", ahrs.getDisplacementX());
     SmartDashboard.putNumber("YDisp", ahrs.getDisplacementY());
+
+    SmartDashboard.putNumber("Lift Encoder:", liftMotor.getSelectedSensorPosition());
+    SmartDashboard.putNumber("Left Stilt Encoder", climbL.getSelectedSensorPosition());
+    SmartDashboard.putNumber("Right Stilt Encoder", climbR.getSelectedSensorPosition());
     
     heading = ahrs.getAngle();
     alpha = readAlphaIntensity();
@@ -523,18 +525,18 @@ public class Robot extends TimedRobot
   // Cargo Eject Logic
     if (cargoEject)
     {
-      leftCargoIntake.set(1.0);
-      rightCargoIntake.set(-1.0);
+      leftCargoIntake.set(-0.6);
+      rightCargoIntake.set(0.6);
     }
     else if (cargoIntake)
     {
-      leftCargoIntake.set(-1.0);
-      rightCargoIntake.set(1.0);
+      leftCargoIntake.set(0.6);
+      rightCargoIntake.set(-0.6);
     }
     else
     {
-      leftCargoIntake.set(0);
-      rightCargoIntake.set(0);
+      leftCargoIntake.set(-0.15);
+      rightCargoIntake.set(0.15);
     }
 
   // Pneumatics Fire Logic
@@ -563,7 +565,7 @@ public class Robot extends TimedRobot
         driveState = "normal";
       }
     }
-    else if (driveState.equals("lineup"))
+    /* else if (driveState.equals("lineup"))
     {
       if (!driveJoybuttonY || lineupState.equals("stop"))
       {
@@ -574,7 +576,9 @@ public class Robot extends TimedRobot
         driveState = "normal";
         lineupState = "start";
       }
-    }
+    } */
+
+
     else if (driveState.equals("climb"))
     {
       if ((climbLevel.equals("1") && !climb1stLevel) || (climbLevel.equals("3") && !climb3rdLevel) || climbState.equals("stop"))
@@ -590,26 +594,26 @@ public class Robot extends TimedRobot
     }
   else
   {
-    if (lineFollower_Left) //X
+    if (lineFollower_Left && driveJoybuttonLeftBumperPressed) //X
     {
       driveState = "center";
       centerDirection = "left";
     }
-    else if (lineFollower_Right)
+    else if (lineFollower_Right && driveJoybuttonRightBumperPressed)
     {
       driveState = "center";
       centerDirection = "right";
     }
-    else if (driveJoybuttonY) //Y
+   /* else if (driveJoybuttonY) //Y
     {
       driveState = "lineup";
-    }
-    else if (climb1stLevel)
+    } */
+    else if (climb1stLevel && driveJoybuttonAPressed)
     {
       driveState = "climb";
       climbLevel = "1";
     }
-    else if (climb3rdLevel)
+    else if (climb3rdLevel && driveJoybuttonBPressed)
     {
       driveState = "climb";
       climbLevel = "3";
@@ -633,11 +637,11 @@ public class Robot extends TimedRobot
       }
 
       //lineup state
-      case "lineup":
+     /* case "lineup":
       {
         driveLineup();
-        break;
-      }//end of lineup
+        break; 
+      } */
 
       //climb state
       case "climb":
@@ -757,15 +761,9 @@ public class Robot extends TimedRobot
     driveXAxis = driveJoyAxisLeftStickX;
     driveYAxis = driveJoyAxisLeftStickY;
     driveRotation = driveJoyAxisRightStickX;
-    
-    if (fieldAssistedDrive)
-    {
-      mecdrive.driveCartesian(driveXAxis * slowmodifer, -driveYAxis * slowmodifer, driveRotation * slowmodifer, ahrs.getAngle());
-    }
-    else
-    {
-      mecdrive.driveCartesian(driveXAxis * slowmodifer, -driveYAxis * slowmodifer, driveRotation * slowmodifer);
-    }
+  
+      mecdrive.driveCartesian(driveXAxis , -driveYAxis , driveRotation);
+  
   }
 
   
@@ -865,7 +863,7 @@ public class Robot extends TimedRobot
         {
           centerIterationsCount = 0;
           mecdrive.driveCartesian(0,0,0);
-          centerState = "lineup";
+          centerState = "stop";
         }
   
         else
@@ -885,7 +883,7 @@ public class Robot extends TimedRobot
       }
 
       //lineup using ultrasonic sensors
-      case "lineup":
+     /* case "lineup":
       {
         if (lineupState.equals("stop"))
         {
@@ -902,7 +900,7 @@ public class Robot extends TimedRobot
           driveLineup();
         }
 
-        break;
+        break; 
       }
 
       //lineup using ultrasonic sensors
@@ -924,11 +922,11 @@ public class Robot extends TimedRobot
         }
 
         break;
-      }
-    }//end of switch
+      } */
+    }
 
     mecdrive.driveCartesian(tempXAxis,tempYAxis,tempRotation);
-  }//end of driveCenter()
+  } 
 
   public void driveLineup()
   {
@@ -939,7 +937,7 @@ public class Robot extends TimedRobot
       {
         if (Math.abs(USSLout - USSRout) <= 2)
         {
-          ahrs.reset();
+        //  ahrs.reset();
           mecdrive.driveCartesian(0,0,0);
           lineupState = "stop";
         }
@@ -976,15 +974,15 @@ public class Robot extends TimedRobot
     // --- Change Multiplier
     double stiltThreshold = 100;
     
-    double multiplier = stiltError / (stiltThreshold / baseSpeed);
+    double multiplier = stiltError / (stiltThreshold / maxCorrection);
 
-    if ((stiltError >= stiltThreshold) && (leftStilt < rightStilt))
+    if ((stiltError >= stiltThreshold) && (leftStilt <= rightStilt))
     {
-      moveStiltsSafeAuto(baseSpeed, 0);
+      moveStiltsSafeAuto(baseSpeed, baseSpeed - maxCorrection);//Assume positive is up
     }
     else if ((stiltError >= stiltThreshold) && (leftStilt > rightStilt))
     {
-      moveStiltsSafeAuto(0, baseSpeed);
+      moveStiltsSafeAuto(baseSpeed - maxCorrection, baseSpeed);
     }
     else if ((stiltError < stiltThreshold) && (leftStilt <= rightStilt))
     {
@@ -1004,8 +1002,17 @@ public class Robot extends TimedRobot
     double maximumStiltPosition = Math.max(leftStilt, rightStilt);
     double liftStiltError = Math.abs(lift - Math.max(leftStilt, rightStilt));
     double liftThreshold = 100;
-    double multiplier = liftStiltError / (liftThreshold / baseSpeed);
+    double multiplier = liftStiltError / (liftThreshold / maxCorrection);
 
+
+    if ((liftStiltError > liftThreshold) && (lift >= -maximumStiltPosition))
+    {
+      liftMotorSafe(baseSpeed - maxCorrection);
+    }
+    else if ((liftStiltError > liftThreshold) && (lift < -maximumStiltPosition))
+    {
+      liftMotorSafe(baseSpeed + maxCorrection);
+    }
     if ((liftStiltError < liftThreshold) && (lift >= -maximumStiltPosition))
     {
       liftMotorSafe(baseSpeed - multiplier);
@@ -1300,14 +1307,15 @@ public class Robot extends TimedRobot
 
   public void operatorManual()
   {
-      wristMotor.set(- operatorJoy.getRawAxis(1));
     if (operatorJoy.getRawButton(10) == true)
     {
-      moveStiltsSafe("down");
+      climbL.set(ControlMode.PercentOutput, 1.0);
+      climbR.set(ControlMode.PercentOutput, 1.0);
     }
     else if (operatorJoy.getRawButton(11) == true)
     {
-      moveStiltsSafe("up");
+      climbL.set(ControlMode.PercentOutput, -1.0);
+      climbR.set(ControlMode.PercentOutput, -1.0);
     }
     else
     {
@@ -1326,17 +1334,19 @@ public class Robot extends TimedRobot
       WclimbR.set(0);
     }
   
+    liftMotor.set(ControlMode.PercentOutput, - operatorJoy.getRawAxis(1));
+   
     if (operatorJoy.getRawButton(6))
     {
-      liftMotor.set(ControlMode.PercentOutput, 0.9);
+      wristMotor.set(ControlMode.PercentOutput, 0.5);
     }
     else if (operatorJoy.getRawButton(7))
     {
-      liftMotor.set(ControlMode.PercentOutput, -0.9);
+      wristMotor.set(ControlMode.PercentOutput, -0.8);
     }
     else
     {
-      liftMotor.set(ControlMode.PercentOutput, 0.0);
+      wristMotor.set(ControlMode.PercentOutput, 0.0);
     }
   }
 
