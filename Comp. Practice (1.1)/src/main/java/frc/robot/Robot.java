@@ -1,5 +1,7 @@
 package frc.robot;
 
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
+import edu.wpi.first.wpilibj.interfaces.Potentiometer;
 import com.kauailabs.navx.frc.AHRS;
 import com.kauailabs.navx.frc.Quaternion;
 import com.kauailabs.navx.frc.AHRS.SerialDataType;
@@ -244,6 +246,9 @@ public class Robot extends TimedRobot
   double heading = 0;
 
   /* Check all IDs */
+  /* Wrist Potentiometer for ID 0. Theoritical values range from 0 to 1000*/
+  Potentiometer wristPot = new AnalogPotentiometer(0, 1000, 0);
+
   AnalogInput leftUltrasonic = new AnalogInput(0);
   AnalogInput rightUltrasonic = new AnalogInput(1);
 
@@ -386,6 +391,7 @@ public class Robot extends TimedRobot
     SmartDashboard.putNumber("Ultrasonic R", USSRout);
     SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
     SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
+    SmartDashboard.putNumber("Wrist Potentiometer", wristPot.get());
 
     // SmartDashboard Printing
     SmartDashboard.putNumber("alphavalue", alpha);
