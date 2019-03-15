@@ -247,7 +247,7 @@ public class Robot extends TimedRobot
 
   /* Check all IDs */
   /* Wrist Potentiometer for ID 0. Theoritical values range from 0 to 1000*/
-  Potentiometer wristPot = new AnalogPotentiometer(0, 1000, 0);
+  Potentiometer wristPot = new AnalogPotentiometer(2, 1000, 0);
 
   AnalogInput leftUltrasonic = new AnalogInput(0);
   AnalogInput rightUltrasonic = new AnalogInput(1);
