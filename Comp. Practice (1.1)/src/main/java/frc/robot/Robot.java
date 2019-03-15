@@ -1,10 +1,5 @@
 package frc.robot;
 
-import com.kauailabs.navx.frc.AHRS;
-import com.kauailabs.navx.frc.Quaternion;
-import com.kauailabs.navx.frc.AHRS.SerialDataType;
-import com.kauailabs.navx.frc.*;
-
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -278,7 +273,6 @@ public class Robot extends TimedRobot
   Compressor compressor = new Compressor(0);
   Solenoid ejectorSolenoid = new Solenoid(6);
   DoubleSolenoid Solenoid2 = new DoubleSolenoid(4, 5);
-  AHRS ahrs = new AHRS(SerialPort.Port.kUSB1);
 // ----------------------------------------------------------------------------------------
   @Override
   public void robotInit()
@@ -364,11 +358,6 @@ public class Robot extends TimedRobot
   }
   public void mainCode()
   {
-    if(i == 0)
-    {
-      i++;
-      ahrs.reset();
-    }
     // SmartDashboard Printing and Sensor Configuration
     SmartDashboard.putNumber("alphavalue", alpha);
 
@@ -393,17 +382,10 @@ public class Robot extends TimedRobot
     SmartDashboard.putBoolean("slowmode", slowdown);
     // SmartDashboard.putBoolean("lineup", lineup);
 
-    SmartDashboard.putNumber("Gyro Angle", ahrs.getAngle());
-    SmartDashboard.putBoolean("Connection Gyro", ahrs.isConnected());
-   // SmartDashboard.putNumber("Yaw", heading);
-    SmartDashboard.putNumber("XDisp", ahrs.getDisplacementX());
-    SmartDashboard.putNumber("YDisp", ahrs.getDisplacementY());
-
     SmartDashboard.putNumber("Lift Encoder:", liftMotor.getSelectedSensorPosition());
     SmartDashboard.putNumber("Left Stilt Encoder", climbL.getSelectedSensorPosition());
     SmartDashboard.putNumber("Right Stilt Encoder", climbR.getSelectedSensorPosition());
     
-    heading = ahrs.getAngle();
     alpha = readAlphaIntensity();
 
     // Drive Buttons and Axes
@@ -494,12 +476,6 @@ public class Robot extends TimedRobot
       cargoIntake = operatorJoy.getRawButton(2);
       cargoEject = false;
       pneumaticsFire = false;
-    }
-
-    // Reset Gyro Logic
-    if (driveJoybuttonX)
-    {
-      ahrs.reset();
     }
 
     // Operator Shift Button Logic
@@ -939,7 +915,6 @@ public class Robot extends TimedRobot
       {
         if (Math.abs(USSLout - USSRout) <= 2)
         {
-        //  ahrs.reset();
           mecdrive.driveCartesian(0,0,0);
           lineupState = "stop";
         }
