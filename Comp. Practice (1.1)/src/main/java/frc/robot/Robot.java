@@ -282,10 +282,18 @@ public class Robot extends TimedRobot
     m_chooser.addOption("My Auto", kCustomAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
     /* Initialize and Configure Cameras */
-    AxisCamera camera2 = CameraServer.getInstance().addAxisCamera("10.20.39.11");
-    UsbCamera camera1 = CameraServer.getInstance().startAutomaticCapture(0);
-    camera1.setResolution(360, 240);
-    camera1.setFPS(15);
+    new Thread(new Runnable() {
+      @Override
+      public void run()
+      {
+        UsbCamera camera1 = CameraServer.getInstance().startAutomaticCapture(0);
+        UsbCamera camera2 = CameraServer.getInstance().startAutomaticCapture(1);
+        camera1.setResolution(128, 96);
+        camera2.setResolution(128, 96);
+        camera1.setFPS(30);
+        camera2.setFPS(30);
+      }
+    }).start();
 
     // Color Sensor Startup Code
     buffer.order(ByteOrder.LITTLE_ENDIAN);
