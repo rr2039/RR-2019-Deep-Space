@@ -214,7 +214,8 @@ public class Robot extends TimedRobot
   final double wristHatchLevel_Position = 0;
   final double wristCargoLevel_Position = 0;
 
-
+  double wristTolerance = 0.1;
+  
 /* Color Sensor API Variables */
   final int CMD = 0x80;
   final int MULTI_BYTE_BIT   = 0x20;
@@ -1391,21 +1392,21 @@ public class Robot extends TimedRobot
       {
         // Position for hatching and picking up from loading station
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       case "hatchFloorPickupPosition":
       {
         // Position for picking hatches up from the floor
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristHatchingFloorPosition);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       case "cargoPickupPosition":
       {
         // Position for cargo
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristCargoPickupPosition);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       //Elevator states
@@ -1413,42 +1414,42 @@ public class Robot extends TimedRobot
       {
         //move until level 1 (1 ft. 7 in.)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       case "hatchLevel2":
       {
         //move until level 2 (3 ft. 11 in.)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       case "hatchLevel3":
       {
         //move until next level 3 (5 ft. 15 in.)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       case "cargoLevel1":
       {
         //move until level 1 (2 ft. 3.5 in.)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristCargoLevel_Position);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       case "cargoLevel2":
       {
         //move until level 2 (4 ft. 7.5 in)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristCargoLevel_Position);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       case "cargoLevel3":
       {
         //move until next level 3 (6 ft. 11.5 in)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristCargoLevel_Position);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
     }
