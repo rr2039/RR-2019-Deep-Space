@@ -1278,6 +1278,22 @@ public class Robot extends TimedRobot
     }
   }
 
+  public void rotateWristPotentiometer(double targetVolts)
+  {
+    if (wristPot.getAverageVoltage() == targetVolts)
+    {
+      wristMotor.set(0);
+    }
+    else if (wristPot.getAverageVoltage() < targetVolts)
+    {
+      wristMotor.set(1);
+    }
+    else
+    {
+      wristMotor.set(-1);
+    }
+  }
+
   public void moveStiltsSafe(String direction)
   {
     // Use this method in operatorManual()
