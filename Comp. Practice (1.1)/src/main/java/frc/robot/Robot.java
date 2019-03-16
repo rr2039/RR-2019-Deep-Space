@@ -246,8 +246,8 @@ public class Robot extends TimedRobot
   double heading = 0;
 
   /* Check all IDs */
-  /* Wrist Potentiometer for ID 0. Theoritical values range from 0 to 1000*/
-  Potentiometer wristPot = new AnalogPotentiometer(2, 1000, 0);
+  /* Wrist Potentiometer for ID 2. */
+  AnalogInput wristPot = new AnalogInput(2);
 
   AnalogInput leftUltrasonic = new AnalogInput(0);
   AnalogInput rightUltrasonic = new AnalogInput(1);
@@ -391,7 +391,7 @@ public class Robot extends TimedRobot
     SmartDashboard.putNumber("Ultrasonic R", USSRout);
     SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
     SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
-    SmartDashboard.putNumber("Wrist Potentiometer", wristPot.get());
+    SmartDashboard.putNumber("Wrist Potentiometer", wristPot.getAverageVoltage());
 
     // SmartDashboard Printing
     SmartDashboard.putNumber("alphavalue", alpha);
