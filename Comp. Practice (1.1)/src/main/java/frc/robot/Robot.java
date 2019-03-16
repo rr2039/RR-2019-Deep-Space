@@ -1268,7 +1268,7 @@ public class Robot extends TimedRobot
     {
       wristMotor.set(ControlMode.PercentOutput, 0);
     }
-    else if(wristMotor.getSelectedSensorPosition() == 0 && speed < 0) //Lower Limit
+    else if(wristPot.getAverageVoltage() == 0 && speed < 0) //Lower Limit
     {
       wristMotor.set(ControlMode.PercentOutput, 0);
     }
@@ -1278,9 +1278,9 @@ public class Robot extends TimedRobot
     }
   }
 
-  public void rotateWristPotentiometer(double targetVolts)
+  public void rotateWristPotentiometer(double targetVolts, double tolerance)
   {
-    if (wristPot.getAverageVoltage() == targetVolts)
+    if (Math.abs(wristPot.getAverageVoltage() - targetVolts) >= tolerance)
     {
       wristMotor.set(0);
     }
