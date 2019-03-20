@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.Compressor;
-import edu.wpi.first.wpilibj.DoubleSolenoid;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -270,7 +269,6 @@ public class Robot extends TimedRobot
   Compressor compressor = new Compressor(0);
   Solenoid ejectorSolenoid = new Solenoid(6);
   //Solenoid hatchManipulatorSolenoid = new Solenoid(6);
-  DoubleSolenoid Solenoid2 = new DoubleSolenoid(4, 5);
 // ----------------------------------------------------------------------------------------
   @Override
   public void robotInit()
@@ -529,13 +527,11 @@ public class Robot extends TimedRobot
     {
       ejectorSolenoid.set(true);
       //hatchManipulatorSolenoid.set(true);
-     // Solenoid2.set(DoubleSolenoid.Value.kForward);
     }
     else
     {
       ejectorSolenoid.set(false);
       //hatchManipulatorSolenoid.set(true);
-     // Solenoid2.set(DoubleSolenoid.Value.kReverse);
     }
 
   // Drive State Logic
