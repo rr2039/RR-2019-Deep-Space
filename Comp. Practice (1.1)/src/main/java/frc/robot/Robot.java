@@ -1,7 +1,5 @@
 package frc.robot;
 
-<<<<<<< HEAD
-=======
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.interfaces.Potentiometer;
 import com.kauailabs.navx.frc.AHRS;
@@ -9,7 +7,6 @@ import com.kauailabs.navx.frc.Quaternion;
 import com.kauailabs.navx.frc.AHRS.SerialDataType;
 import com.kauailabs.navx.frc.*;
 
->>>>>>> WristPotentiomter
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
