@@ -283,6 +283,7 @@ public class Robot extends TimedRobot
   
   Compressor compressor = new Compressor(0);
   Solenoid ejectorSolenoid = new Solenoid(6);
+  //Solenoid hatchManipulatorSolenoid = new Solenoid(6);
   DoubleSolenoid Solenoid2 = new DoubleSolenoid(4, 5);
 // ----------------------------------------------------------------------------------------
   @Override
@@ -541,11 +542,13 @@ public class Robot extends TimedRobot
     if(pneumaticsFire)
     {
       ejectorSolenoid.set(true);
+      //hatchManipulatorSolenoid.set(true);
      // Solenoid2.set(DoubleSolenoid.Value.kForward);
     }
     else
     {
       ejectorSolenoid.set(false);
+      //hatchManipulatorSolenoid.set(true);
      // Solenoid2.set(DoubleSolenoid.Value.kReverse);
     }
 
