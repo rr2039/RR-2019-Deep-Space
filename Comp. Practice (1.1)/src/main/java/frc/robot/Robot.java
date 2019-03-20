@@ -1,12 +1,5 @@
 package frc.robot;
 
-import edu.wpi.first.wpilibj.AnalogPotentiometer;
-import edu.wpi.first.wpilibj.interfaces.Potentiometer;
-import com.kauailabs.navx.frc.AHRS;
-import com.kauailabs.navx.frc.Quaternion;
-import com.kauailabs.navx.frc.AHRS.SerialDataType;
-import com.kauailabs.navx.frc.*;
-
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -14,19 +7,12 @@ import com.ctre.phoenix.motorcontrol.can.*;
 import edu.wpi.first.wpilibj.drive.*;
 import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.smartdashboard.*;
-import edu.wpi.cscore.AxisCamera;
 import edu.wpi.cscore.UsbCamera;
-import edu.wpi.first.cameraserver.*;
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.wpilibj.AnalogOutput;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-
-import javax.lang.model.util.ElementScanner6;
 
 import com.ctre.phoenix.motorcontrol.*;
 
