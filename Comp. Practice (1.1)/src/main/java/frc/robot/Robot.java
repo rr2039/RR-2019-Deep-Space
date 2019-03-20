@@ -1,5 +1,15 @@
 package frc.robot;
 
+<<<<<<< HEAD
+=======
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
+import edu.wpi.first.wpilibj.interfaces.Potentiometer;
+import com.kauailabs.navx.frc.AHRS;
+import com.kauailabs.navx.frc.Quaternion;
+import com.kauailabs.navx.frc.AHRS.SerialDataType;
+import com.kauailabs.navx.frc.*;
+
+>>>>>>> WristPotentiomter
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -207,7 +217,8 @@ public class Robot extends TimedRobot
   final double wristHatchLevel_Position = 0;
   final double wristCargoLevel_Position = 0;
 
-
+  double wristTolerance = 0.1;
+  
 /* Color Sensor API Variables */
   final int CMD = 0x80;
   final int MULTI_BYTE_BIT   = 0x20;
@@ -239,6 +250,9 @@ public class Robot extends TimedRobot
   double heading = 0;
 
   /* Check all IDs */
+  /* Wrist Potentiometer for ID 2. */
+  AnalogInput wristPot = new AnalogInput(2);
+
   AnalogInput leftUltrasonic = new AnalogInput(0);
   AnalogInput rightUltrasonic = new AnalogInput(1);
 
@@ -383,6 +397,7 @@ public class Robot extends TimedRobot
     SmartDashboard.putNumber("Ultrasonic R", USSRout);
     SmartDashboard.putNumber("Lift Encoder", liftMotor.getSelectedSensorPosition());
     SmartDashboard.putNumber("Lift Encoder velocity", liftMotor.getSelectedSensorVelocity());
+    SmartDashboard.putNumber("Wrist Potentiometer", wristPot.getAverageVoltage());
 
     // SmartDashboard Printing
     SmartDashboard.putNumber("alphavalue", alpha);
@@ -1245,13 +1260,29 @@ public class Robot extends TimedRobot
     {
       wristMotor.set(ControlMode.PercentOutput, 0);
     }
-    else if(wristMotor.getSelectedSensorPosition() == 0 && speed < 0) //Lower Limit
+    else if(wristPot.getAverageVoltage() == 0 && speed < 0) //Lower Limit
     {
       wristMotor.set(ControlMode.PercentOutput, 0);
     }
     else //No limits hit
     {
       wristMotor.set(ControlMode.PercentOutput, speed);
+    }
+  }
+
+  public void rotateWristPotentiometer(double targetVolts, double tolerance)
+  {
+    if (Math.abs(wristPot.getAverageVoltage() - targetVolts) >= tolerance)
+    {
+      wristMotor.set(0);
+    }
+    else if (wristPot.getAverageVoltage() < targetVolts)
+    {
+      wristMotor.set(1);
+    }
+    else
+    {
+      wristMotor.set(-1);
     }
   }
 
@@ -1352,21 +1383,21 @@ public class Robot extends TimedRobot
       {
         // Position for hatching and picking up from loading station
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       case "hatchFloorPickupPosition":
       {
         // Position for picking hatches up from the floor
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristHatchingFloorPosition);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       case "cargoPickupPosition":
       {
         // Position for cargo
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristCargoPickupPosition);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       //Elevator states
@@ -1374,42 +1405,42 @@ public class Robot extends TimedRobot
       {
         //move until level 1 (1 ft. 7 in.)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       case "hatchLevel2":
       {
         //move until level 2 (3 ft. 11 in.)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       case "hatchLevel3":
       {
         //move until next level 3 (5 ft. 15 in.)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristHatchLevel_Position);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       case "cargoLevel1":
       {
         //move until level 1 (2 ft. 3.5 in.)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristCargoLevel_Position);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       case "cargoLevel2":
       {
         //move until level 2 (4 ft. 7.5 in)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristCargoLevel_Position);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
       case "cargoLevel3":
       {
         //move until next level 3 (6 ft. 11.5 in)
         liftMotor.set(ControlMode.Position, linearEncoderConversion(0));
-        wristMotor.set(ControlMode.Position, wristCargoLevel_Position);
+        rotateWristPotentiometer(0, wristTolerance);
         break;
       }
     }
