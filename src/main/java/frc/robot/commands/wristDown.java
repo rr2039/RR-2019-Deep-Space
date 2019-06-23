@@ -12,8 +12,7 @@ import frc.robot.Robot;
 
 public class wristDown extends Command {
   public wristDown() {
-    // Use requires() here to declare subsystem dependencies
-    // eg. requires(chassis);
+    requires(Robot.liftSub);
   }
 
   // Called just before this Command runs the first time

@@ -14,7 +14,7 @@ public class moveLift extends Command {
   double public_speed;
   public moveLift(double speed) {
     public_speed = speed;
-   requires(Robot.liftSub);
+    requires(Robot.liftSub);
   }
 
   // Called just before this Command runs the first time
