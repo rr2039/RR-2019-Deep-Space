@@ -48,7 +48,8 @@ public class OI {
       climbPistons.retract();   
     }
     else {
-      climbPistons.neutral();
+      // Check the climbPistons class for a recursion joke.
+      // climbPistons.sitThereAndLookPretty();
     }
   }
 
