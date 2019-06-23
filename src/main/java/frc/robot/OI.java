@@ -17,11 +17,15 @@ import frc.robot.Deadzone;
  * interface to the commands and command groups that allow control of the robot.
  */
 public class OI {
+  ClimbingPistons climbPistons = new ClimbingPistons();
   Joystick driveJoy = new Joystick(0);
   Joystick operatorJoy = new Joystick(1);
 
   Button wristUp = new JoystickButton(operatorJoy, 6);
   Button wristDown = new JoystickButton(operatorJoy, 7);
+
+  Boolean climb = driveJoy.getRawButtonPressed(100); //100 is a placeholder until an official button is determined
+  Boolean lower = driveJoy.getRawButtonPressed(200); //Same as above, 200 is a placeholder.
 
 
   double driveLeftStick_X = driveJoy.getRawAxis(0);
@@ -36,6 +40,16 @@ public class OI {
     wristDown.whenPressed(new wristDown());
     Deadzone.whenOutside(new moveLift(operatorJoy.getRawAxis(1)), operatorJoy.getRawAxis(1), 0.15);
     mecDrive.driveCartesian(driveLeftStick_X, -driveLeftStick_Y, driveRightStick_X);
+
+    if (climb) {
+      climbPistons.extend();
+    }
+    else if (lower) {
+      climbPistons.retract();   
+    }
+    else {
+      climbPistons.neutral();
+    }
   }
 
   //// CREATING BUTTONS
